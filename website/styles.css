@@ -240,6 +240,106 @@ h1 {
   content: "";
 }
 
+/* Shield-style metadata badges */
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.badge {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.badge > span {
+  padding: 8px 11px;
+}
+
+.badge-key {
+  background: rgba(6, 6, 10, 0.75);
+  color: var(--muted);
+}
+
+.badge-value {
+  border-left: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink);
+}
+
+.badge-value.is-purple {
+  border-left-color: rgba(140, 119, 239, 0.3);
+  background: rgba(140, 119, 239, 0.18);
+  color: #c7b9ff;
+}
+
+.badge-value.is-orange {
+  border-left-color: rgba(255, 138, 52, 0.3);
+  background: rgba(255, 138, 52, 0.16);
+  color: #ffb47f;
+}
+
+.badge-value.is-green {
+  border-left-color: rgba(43, 212, 102, 0.3);
+  background: rgba(43, 212, 102, 0.15);
+  color: #7ce8a4;
+}
+
+.badge-value.is-swift {
+  border-left-color: rgba(240, 81, 56, 0.32);
+  background: rgba(240, 81, 56, 0.16);
+  color: #ff9d8a;
+}
+
+.hero-badges {
+  margin-top: 16px;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.chip::before {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--purple-soft);
+  content: "";
+}
+
+.page-hero .badge-row {
+  margin-top: 26px;
+}
+
 .hero-visual {
   position: relative;
   display: flex;
@@ -547,6 +647,70 @@ h1 {
   content: "";
 }
 
+.spec-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(35px, 6vw, 70px);
+  align-items: start;
+}
+
+.spec-strip h2 {
+  margin-bottom: 18px;
+  font-size: clamp(2.3rem, 4vw, 4rem);
+}
+
+.spec-strip > div > p:not(.eyebrow) {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+}
+
+.spec-panel {
+  display: grid;
+  gap: 24px;
+  padding: clamp(24px, 4vw, 36px);
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+}
+
+.spec-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.spec-list > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.spec-list dt {
+  color: var(--faint);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.spec-list dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.92rem;
+  text-align: right;
+}
+
+.spec-panel .button {
+  justify-self: start;
+}
+
 .cta {
   padding: 100px 30px;
   border: 1px solid rgba(218, 53, 238, 0.22);
@@ -682,8 +846,12 @@ h1 {
 
 .prose ul,
 .prose ol {
-  margin: 15px 0 0;
+  margin: 15px 0 16px;
   padding-left: 1.25rem;
+}
+
+.prose > section > :last-child {
+  margin-bottom: 0;
 }
 
 .prose li + li {
@@ -767,7 +935,9 @@ h1 {
 
   .eyebrow,
   .actions,
-  .availability {
+  .availability,
+  .hero-badges,
+  .hero-copy-wrap .chip-row {
     justify-content: center;
   }
 
@@ -778,6 +948,7 @@ h1 {
   .contrast-grid,
   .formula,
   .privacy-strip,
+  .spec-strip,
   .content-layout {
     grid-template-columns: 1fr;
   }
@@ -896,6 +1067,24 @@ h1 {
 
   .cta {
     padding: 72px 20px;
+  }
+
+  .badge {
+    font-size: 0.69rem;
+  }
+
+  .badge > span {
+    padding: 7px 9px;
+  }
+
+  .spec-list > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .spec-list dd {
+    text-align: left;
   }
 
   .footer-row,
