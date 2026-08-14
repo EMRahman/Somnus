@@ -2,6 +2,8 @@
 
 A native iOS app that reads Apple Watch sleep data to make your **sleep debt** visible. Somnus shows how far behind your sleep target you have fallen, how that debt is changing over time, and whether your habits are helping you recover — rather than only summarizing how well you slept last night, this week, or this year.
 
+**Status:** Pending App Store submission.
+
 **Website:** [emrahman.github.io/Somnus](https://emrahman.github.io/Somnus/) · [Support](https://emrahman.github.io/Somnus/support.html) · [Privacy Policy](https://emrahman.github.io/Somnus/privacy.html)
 
 ---
