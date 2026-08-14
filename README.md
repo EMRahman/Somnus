@@ -1,10 +1,44 @@
+<div align="center">
+
+<img src="website/assets/app-icon.png" alt="Somnus app icon" width="104" height="104">
+
 # Somnus
 
-A native iOS app that reads Apple Watch sleep data to make your **sleep debt** visible. Somnus shows how far behind your sleep target you have fallen, how that debt is changing over time, and whether your habits are helping you recover — rather than only summarizing how well you slept last night, this week, or this year.
+**Sleep debt, made visible.**
 
-**Status:** Pending App Store submission.
+A native iOS app that reads Apple Watch sleep data and turns it into a running view of your **sleep debt** — how far behind your target you have fallen, how that gap is changing, and whether your habits are helping you recover.
 
-**Website:** [emrahman.github.io/Somnus](https://emrahman.github.io/Somnus/) · [Support](https://emrahman.github.io/Somnus/support.html) · [Privacy Policy](https://emrahman.github.io/Somnus/privacy.html)
+[![Platform](https://img.shields.io/badge/Platform-iOS%2017%2B-8C77EF?style=flat-square&logo=apple&logoColor=white&labelColor=0B0B12)](https://www.apple.com/ios/)
+[![Swift](https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white&labelColor=0B0B12)](https://swift.org)
+[![Xcode](https://img.shields.io/badge/Xcode-15%2B-147EFB?style=flat-square&logo=xcode&logoColor=white&labelColor=0B0B12)](https://developer.apple.com/xcode/)
+[![SwiftUI](https://img.shields.io/badge/SwiftUI-1B1926?style=flat-square&logo=swift&logoColor=8C77EF)](https://developer.apple.com/xcode/swiftui/)
+[![HealthKit](https://img.shields.io/badge/HealthKit-1B1926?style=flat-square&logo=apple&logoColor=FF6B81)](https://developer.apple.com/documentation/healthkit)
+[![Swift Charts](https://img.shields.io/badge/Swift%20Charts-1B1926?style=flat-square&logo=apple&logoColor=2BD466)](https://developer.apple.com/documentation/charts)
+
+[![App Store](https://img.shields.io/badge/App%20Store-Pending%20Submission-FF8A34?style=flat-square&logo=appstore&logoColor=white&labelColor=0B0B12)](https://emrahman.github.io/Somnus/)
+[![License](https://img.shields.io/github/license/EMRahman/Somnus?style=flat-square&label=License&labelColor=0B0B12&color=2BD466)](LICENSE)
+[![Website](https://img.shields.io/github/actions/workflow/status/EMRahman/Somnus/pages.yml?style=flat-square&label=Website&logo=githubpages&logoColor=white&labelColor=0B0B12&color=2BD466)](https://emrahman.github.io/Somnus/)
+[![Codebase](https://img.shields.io/github/languages/top/EMRahman/Somnus?style=flat-square&label=Swift%20share&logo=swift&logoColor=white&labelColor=0B0B12&color=F05138)](https://github.com/EMRahman/Somnus)
+[![Privacy](https://img.shields.io/badge/Privacy-100%25%20on--device-2BD466?style=flat-square&logo=apple&logoColor=white&labelColor=0B0B12)](docs/privacy-policy.md)
+
+[**Website**](https://emrahman.github.io/Somnus/) · [Support](https://emrahman.github.io/Somnus/support.html) · [Privacy Policy](https://emrahman.github.io/Somnus/privacy.html)
+
+</div>
+
+---
+
+## Screenshots
+
+<div align="center">
+
+| Dashboard | Weekly debt | Monthly debt |
+|:---:|:---:|:---:|
+| <img src="website/assets/somnus-dashboard.png" alt="Somnus dashboard showing a 94 Excellent sleep score alongside 4.6 hours of accumulated debt" width="260"> | <img src="website/assets/somnus-debt-week.png" alt="Weekly Trends screen with nightly shortfall bars and a cumulative debt line reaching 4.5 hours" width="260"> | <img src="website/assets/somnus-debt-month.png" alt="Monthly Trends screen showing 18 hours behind the sleep goal" width="260"> |
+| A strong night and a growing deficit, side by side | Each night's shortfall, plus the running total | The same view, scaled out to a month |
+
+<sub>Screenshots use deterministic sample data.</sub>
+
+</div>
 
 ---
 
@@ -187,8 +221,12 @@ All ViewModels include `#if DEBUG` static preview properties with a realistic 7-
 - All scoring, debt, and trend calculations run entirely locally — no data is sent to any server.
 - HealthKit access can be revoked at any time through iOS Settings → Privacy → Health.
 
+Full policy: [docs/privacy-policy.md](docs/privacy-policy.md) · [emrahman.github.io/Somnus/privacy.html](https://emrahman.github.io/Somnus/privacy.html)
+
 ---
 
 ## License
 
-This project is provided as-is for personal use.
+Released under the [MIT License](LICENSE). © 2026 Ehsan Rahman.
+
+<sub>Somnus provides educational wellness insights, not medical advice. Apple, Apple Health, Apple Watch, and iPhone are trademarks of Apple Inc. Somnus is an independent project and is not affiliated with Apple.</sub>

@@ -42,7 +42,12 @@
           <a class="button" href="#see-it">See the difference</a>
           <a class="button secondary" href="https://github.com/EMRahman/Somnus">View on GitHub</a>
         </div>
-        <p class="availability">Built for iPhone with Apple Watch sleep data · Pending App Store submission</p>
+        <p class="availability">Built for iPhone with Apple Watch sleep data</p>
+        <ul class="badge-row hero-badges" aria-label="App details">
+          <li class="badge"><span class="badge-key">Platform</span><span class="badge-value is-purple">iOS 17+</span></li>
+          <li class="badge"><span class="badge-key">App Store</span><span class="badge-value is-orange">Pending submission</span></li>
+          <li class="badge"><span class="badge-key">Licence</span><span class="badge-value is-green">MIT</span></li>
+        </ul>
       </div>
 
       <div class="hero-visual" aria-label="Somnus weekly Trends screen showing nightly sleep-debt bars and a cumulative-debt line reaching 4.5 hours">
@@ -171,6 +176,54 @@
       </div>
     </section>
 
+    <section class="section container" id="under-the-hood">
+      <div class="spec-strip">
+        <div>
+          <p class="eyebrow">Under the hood</p>
+          <h2>Native, and open.</h2>
+          <p>Somnus is a SwiftUI app built directly on HealthKit and Swift Charts, with no third-party SDKs. The sleep-debt engine and its unit tests are published under the MIT licence, so the numbers on screen can be checked against the code that produced them.</p>
+          <ul class="chip-row" aria-label="Frameworks used">
+            <li class="chip">SwiftUI</li>
+            <li class="chip">HealthKit</li>
+            <li class="chip">Swift Charts</li>
+            <li class="chip">Combine</li>
+          </ul>
+        </div>
+
+        <div class="spec-panel">
+          <ul class="badge-row" aria-label="Project details">
+            <li class="badge"><span class="badge-key">Platform</span><span class="badge-value is-purple">iOS 17+</span></li>
+            <li class="badge"><span class="badge-key">Language</span><span class="badge-value is-swift">Swift 5.9</span></li>
+            <li class="badge"><span class="badge-key">Licence</span><span class="badge-value is-green">MIT</span></li>
+            <li class="badge"><span class="badge-key">App Store</span><span class="badge-value is-orange">Pending submission</span></li>
+            <li class="badge"><span class="badge-key">Version</span><span class="badge-value">1.0.0</span></li>
+            <li class="badge"><span class="badge-key">Privacy</span><span class="badge-value is-green">100% on-device</span></li>
+          </ul>
+
+          <dl class="spec-list">
+            <div>
+              <dt>Devices</dt>
+              <dd>iPhone and iPad</dd>
+            </div>
+            <div>
+              <dt>Data source</dt>
+              <dd>Apple Watch sleep tracking, read from Apple Health</dd>
+            </div>
+            <div>
+              <dt>Health access</dt>
+              <dd>Read-only Sleep Analysis</dd>
+            </div>
+            <div>
+              <dt>Network use</dt>
+              <dd>None — no accounts, servers, or analytics</dd>
+            </div>
+          </dl>
+
+          <a class="button secondary" href="https://github.com/EMRahman/Somnus">Read the source</a>
+        </div>
+      </div>
+    </section>
+
     <section class="section container">
       <div class="cta">
         <p class="eyebrow">Look beyond last night</p>
@@ -191,6 +244,7 @@
         <a href="support.html">Support</a>
         <a href="privacy.html">Privacy</a>
         <a href="https://github.com/EMRahman/Somnus">GitHub</a>
+        <a href="https://github.com/EMRahman/Somnus/blob/main/LICENSE">MIT Licence</a>
       </div>
     </div>
     <div class="container" style="margin-top: 14px">Apple, Apple Health, Apple Watch, and iPhone are trademarks of Apple Inc. Somnus is independent and is not affiliated with Apple.</div>
