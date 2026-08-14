@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07070c">
+  <meta name="description" content="Get help with Somnus, Health access, missing sleep data, targets, and sleep-debt calculations.">
+  <title>Somnus Support</title>
+  <link rel="icon" href="assets/app-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <nav class="nav container" aria-label="Primary navigation">
+      <a class="brand" href="./" aria-label="Somnus home">
+        <img src="assets/app-icon.png" width="38" height="38" alt="">
+        <span>Somnus</span>
+      </a>
+      <div class="nav-links">
+        <a href="./">Why Somnus</a>
+        <a href="support.html" aria-current="page">Support</a>
+        <a href="privacy.html">Privacy</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main" class="container">
+    <header class="page-hero">
+      <p class="eyebrow">Somnus support</p>
+      <h1>How can we help?</h1>
+      <p>Find answers to common setup and sleep-data questions, or contact the developer directly.</p>
+    </header>
+
+    <section class="contact-card" aria-labelledby="contact-title">
+      <div>
+        <h2 id="contact-title">Talk to a person</h2>
+        <p>For app issues, feedback, accessibility concerns, or feature requests, email Ehsan at <a href="mailto:ehsanr.web@gmail.com">ehsanr.web@gmail.com</a>.</p>
+      </div>
+      <a class="button" href="mailto:ehsanr.web@gmail.com?subject=Somnus%20Support">Email support</a>
+    </section>
+
+    <div class="content-layout">
+      <div class="prose">
+        <section id="requirements">
+          <h2>What you need</h2>
+          <ul>
+            <li>An iPhone or iPad running iOS or iPadOS 17 or later.</li>
+            <li>Sleep data recorded in Apple Health. An Apple Watch with sleep tracking enabled is the intended data source.</li>
+            <li>Read access to Sleep Analysis granted when Somnus asks.</li>
+          </ul>
+        </section>
+
+        <section id="no-data">
+          <h2>If no sleep data appears</h2>
+          <ol>
+            <li>Open Apple Health and confirm that a recent night appears under <strong>Sleep</strong>.</li>
+            <li>Open iOS Settings → Privacy &amp; Security → Health → Somnus and allow access to Sleep.</li>
+            <li>Return to Somnus and pull down on the Dashboard to refresh.</li>
+            <li>If your watch has only just synced, allow Apple Health to finish updating and try again.</li>
+          </ol>
+          <p class="notice">Somnus deliberately ignores records that contain only “in bed” time and no recorded sleep. This prevents an incomplete record from creating a false score or phantom debt.</p>
+        </section>
+
+        <section id="debt">
+          <h2>Understanding sleep debt</h2>
+          <h3>How is debt calculated?</h3>
+          <p>For each tracked night, Somnus subtracts your recorded sleep from your configured Target Sleep and counts only the shortfall. Those nightly shortfalls are summed for the selected period.</p>
+          <h3>Why can I have debt after a good night?</h3>
+          <p>A strong score describes that night. Debt describes accumulated shortfall across several nights. A good night does not erase the fact that earlier nights fell below your target.</p>
+          <h3>Do missing nights count as a full night of debt?</h3>
+          <p>No. A night with no recorded sleep is excluded. Somnus also combines fragmented sleep sessions that belong to the same night before calculating the shortfall.</p>
+          <h3>What does “behind goal” mean?</h3>
+          <p>It is the signed balance between total recorded sleep and your target across tracked nights in the selected period. Nights above target can offset nights below target in this balance.</p>
+        </section>
+
+        <section id="targets">
+          <h2>Targets and time periods</h2>
+          <p>Open <strong>Settings</strong> in Somnus to change:</p>
+          <ul>
+            <li><strong>Target Sleep</strong>, used to calculate nightly debt and running balance.</li>
+            <li><strong>Minimum Acceptable</strong>, used for target-rate statistics and chart thresholds.</li>
+          </ul>
+          <p>Trends supports Daily, Weekly, Monthly, Yearly, 5 Year, and 10 Year views. Longer views group nights into larger chart buckets while retaining each tracked night’s contribution to debt.</p>
+        </section>
+
+        <section id="privacy-help">
+          <h2>Health access and deletion</h2>
+          <p>Somnus reads Sleep Analysis only. It does not write to Apple Health and does not upload Health data.</p>
+          <p>You can withdraw access in iOS Settings → Privacy &amp; Security → Health → Somnus. Deleting the app removes locally stored Somnus preferences; your original sleep records remain in Apple Health under your control.</p>
+          <p>See the full <a href="privacy.html">Somnus Privacy Policy</a>.</p>
+        </section>
+
+        <section id="contact-details">
+          <h2>Contact details</h2>
+          <p><strong>Developer:</strong> Ehsan Rahman<br><strong>Email:</strong> <a href="mailto:ehsanr.web@gmail.com">ehsanr.web@gmail.com</a></p>
+          <p>When reporting a problem, please include your Somnus version, iOS version, device model, what you expected, and what happened. You may attach a screenshot, but avoid sharing sensitive Health information you do not want included in an email.</p>
+        </section>
+      </div>
+
+      <aside class="side-nav" aria-label="On this page">
+        <p>On this page</p>
+        <a href="#requirements">Requirements</a>
+        <a href="#no-data">Missing data</a>
+        <a href="#debt">Sleep debt</a>
+        <a href="#targets">Targets &amp; periods</a>
+        <a href="#privacy-help">Health &amp; deletion</a>
+        <a href="#contact-details">Contact details</a>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-row container">
+      <div>© 2026 Somnus. Educational wellness insights, not medical advice.</div>
+      <div class="footer-links">
+        <a href="./">Home</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="https://github.com/EMRahman/Somnus">GitHub</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

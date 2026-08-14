@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07070c">
+  <meta name="description" content="Somnus turns Apple Watch sleep data into a running view of sleep debt, so you can see how far behind your target you have fallen and where the trend is heading.">
+  <meta property="og:title" content="Somnus — See what your sleep adds up to">
+  <meta property="og:description" content="A debt-first view of your Apple Watch sleep data, from last night to the last ten years.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://emrahman.github.io/Somnus/">
+  <meta property="og:image" content="https://emrahman.github.io/Somnus/assets/app-icon.png">
+  <link rel="canonical" href="https://emrahman.github.io/Somnus/">
+  <title>Somnus — Sleep debt, made visible</title>
+  <link rel="icon" href="assets/app-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <nav class="nav container" aria-label="Primary navigation">
+      <a class="brand" href="./" aria-label="Somnus home">
+        <img src="assets/app-icon.png" width="38" height="38" alt="">
+        <span>Somnus</span>
+      </a>
+      <div class="nav-links">
+        <a href="#difference">Why Somnus</a>
+        <a href="support.html">Support</a>
+        <a href="privacy.html">Privacy</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero container">
+      <div class="hero-copy-wrap">
+        <p class="eyebrow">Sleep debt, made visible</p>
+        <h1>A good night can hide a <span class="gradient-text">bad trend.</span></h1>
+        <p class="hero-copy">Sleep scores tell you how last night went. Somnus shows <strong>what all those nights add up to</strong>—your shortfall, your running balance, and how serious the debt has become.</p>
+        <div class="actions">
+          <a class="button" href="#see-it">See the difference</a>
+          <a class="button secondary" href="https://github.com/EMRahman/Somnus">View on GitHub</a>
+        </div>
+        <p class="availability">Built for iPhone with Apple Watch sleep data</p>
+      </div>
+
+      <div class="hero-visual" aria-label="Somnus dashboard showing a high nightly score alongside accumulated sleep debt">
+        <div class="phone-shell">
+          <img src="assets/somnus-dashboard.png" width="900" height="1955" alt="Somnus dashboard: 7.6 hours last night, sleep score 94 Excellent, and 4.6 hours of sleep debt this week.">
+        </div>
+        <div class="floating-note" aria-hidden="true">
+          <span>The part a score misses</span>
+          <strong>4.6h behind</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container" id="difference">
+      <div class="section-heading">
+        <p class="eyebrow">Snapshot vs trajectory</p>
+        <h2>The difference is the question.</h2>
+        <p>Apple Health gives you rich sleep history: duration, stages, scores, and trends. Somnus uses that same on-device sleep data to answer a different question—how far behind your personal sleep target are you becoming?</p>
+      </div>
+
+      <div class="contrast-grid">
+        <article class="contrast-card">
+          <p class="card-label">The nightly view</p>
+          <h3>“How did I sleep?”</h3>
+          <p>A score, last night’s duration, and stage breakdown help explain one sleep session.</p>
+          <div class="metric-row" aria-hidden="true">
+            <span class="metric-pill active">Last night</span>
+            <span class="metric-pill">Stages</span>
+            <span class="metric-pill">Score</span>
+          </div>
+        </article>
+
+        <article class="contrast-card accent">
+          <p class="card-label">The Somnus view</p>
+          <h3>“What is it adding up to?”</h3>
+          <p>Nightly shortfalls become a running ledger, exposing a deficit that can be easy to miss one morning at a time.</p>
+          <div class="metric-row" aria-hidden="true">
+            <span class="metric-pill">1 week</span>
+            <span class="metric-pill active">Debt</span>
+            <span class="metric-pill">10 years</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section container" id="see-it">
+      <div class="section-heading">
+        <p class="eyebrow">See the debt build</p>
+        <h2>One story. Three views.</h2>
+        <p>The screenshots use deterministic sample data. They show why a perfectly good night can coexist with a pattern that deserves attention.</p>
+      </div>
+
+      <div class="story-grid">
+        <article class="story-card">
+          <div class="story-image">
+            <img src="assets/somnus-dashboard.png" width="900" height="1955" loading="lazy" alt="Somnus dashboard with a 94 Excellent score and 4.6 hours debt.">
+          </div>
+          <div class="story-copy">
+            <span class="story-number">1</span>
+            <h3>Start with the contradiction</h3>
+            <p>Last night scored 94. The week is still 4.6 hours behind. Both can be true.</p>
+          </div>
+        </article>
+
+        <article class="story-card">
+          <div class="story-image">
+            <img src="assets/somnus-debt-week.png" width="900" height="1955" loading="lazy" alt="Somnus weekly Trends screen with nightly sleep-debt bars and a cumulative-debt line reaching 4.5 hours.">
+          </div>
+          <div class="story-copy">
+            <span class="story-number">2</span>
+            <h3>See every contribution</h3>
+            <p>Orange bars show each night’s shortfall. The purple line turns separate misses into one running total.</p>
+          </div>
+        </article>
+
+        <article class="story-card">
+          <div class="story-image">
+            <img src="assets/somnus-debt-month.png" width="900" height="1955" loading="lazy" alt="Somnus monthly Trends screen showing 18 hours behind the sleep goal and a cumulative debt line.">
+          </div>
+          <div class="story-copy">
+            <span class="story-number">3</span>
+            <h3>Zoom out before you dismiss it</h3>
+            <p>A manageable nightly gap becomes an 18-hour monthly deficit. Somnus can scale the same view from a day to ten years.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="formula">
+        <div>
+          <p class="eyebrow">A simple ledger</p>
+          <h2>Your target minus your sleep.</h2>
+          <p>Somnus totals the shortfall for every tracked night in the selected period. Fragmented sessions are merged, and nights with no recorded sleep are excluded—missing data never becomes phantom debt.</p>
+        </div>
+        <div class="equation" aria-label="Example sleep debt calculation">
+          <div class="equation-row">
+            <span>Personal target</span>
+            <strong>8.0 hours</strong>
+          </div>
+          <div class="equation-row">
+            <span>Sleep recorded</span>
+            <strong>6.5 hours</strong>
+          </div>
+          <div class="equation-row">
+            <span>That night adds</span>
+            <strong class="debt">1.5 hours debt</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="privacy-strip">
+        <div>
+          <p class="eyebrow">Private by design</p>
+          <h2>Your sleep stays yours.</h2>
+          <p>Somnus requests read-only access to sleep analysis in Apple Health. Calculations happen on your device, with no account, analytics, advertising, or developer-operated server.</p>
+        </div>
+        <div class="privacy-points" aria-label="Privacy highlights">
+          <div class="privacy-point">Read-only Health access</div>
+          <div class="privacy-point">On-device calculations</div>
+          <div class="privacy-point">No ads or tracking</div>
+          <div class="privacy-point">No Health data uploads</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="cta">
+        <p class="eyebrow">Look beyond last night</p>
+        <h2>See what your sleep is adding up to.</h2>
+        <p>Somnus is preparing for release. In the meantime, explore the source or get in touch with questions.</p>
+        <div class="actions" style="justify-content: center">
+          <a class="button" href="https://github.com/EMRahman/Somnus">Explore the project</a>
+          <a class="button secondary" href="support.html">Contact support</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-row container">
+      <div>© 2026 Somnus. Educational wellness insights, not medical advice.</div>
+      <div class="footer-links">
+        <a href="support.html">Support</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="https://github.com/EMRahman/Somnus">GitHub</a>
+      </div>
+    </div>
+    <div class="container" style="margin-top: 14px">Apple, Apple Health, Apple Watch, and iPhone are trademarks of Apple Inc. Somnus is independent and is not affiliated with Apple.</div>
+  </footer>
+</body>
+</html>
