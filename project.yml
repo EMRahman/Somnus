@@ -33,7 +33,6 @@ targets:
       path: Somnus/Somnus.entitlements
       properties:
         com.apple.developer.healthkit: true
-        com.apple.developer.healthkit.background-delivery: true
     dependencies: []
     scheme:
       testTargets:
