@@ -84,7 +84,7 @@ Every duration chart renders a green target zone spanning your configured goal b
 
 - Configurable sleep target ("Target Sleep", used for debt calculations) and minimum acceptable hours ("Minimum Acceptable", used for target-compliance stats and chart thresholds)
 - HealthKit setup status and re-authorization
-- Dark theme toggle
+- App version, privacy policy, and a "How Sleep Data Works" explainer
 
 ---
 
@@ -116,7 +116,7 @@ Somnus/
 └── Resources/
     ├── Info.plist                    # Permissions (NSHealthShareUsageDescription)
     ├── Assets.xcassets/              # App icon, accent color
-    └── Somnus.entitlements           # HealthKit + background delivery
+    └── Somnus.entitlements           # HealthKit (read-only)
 ```
 
 **Pattern**: MVVM with `@MainActor` ViewModels, `@Published` state, and Swift concurrency (`async/await`).
@@ -156,7 +156,7 @@ Somnus requests **read-only** access to `HKCategoryTypeIdentifier.sleepAnalysis`
 - In-bed time from manual or automatic detection
 - Start and end timestamps per sample
 
-Raw HealthKit samples are grouped into nightly `SleepRecord` objects using a 2-hour gap threshold. Background delivery is enabled so data updates automatically after the watch syncs.
+Raw HealthKit samples are grouped into nightly `SleepRecord` objects using a 2-hour gap threshold. While the app is open, an `HKObserverQuery` refreshes the screens automatically when the watch syncs new sleep samples.
 
 **No health data is written, transmitted, or stored outside the device.**
 

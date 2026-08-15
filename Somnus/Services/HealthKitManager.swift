@@ -41,10 +41,6 @@ final class HealthKitManager: ObservableObject {
         let typesToRead: Set<HKObjectType> = [sleepType]
 
         try await healthStore.requestAuthorization(toShare: [], read: typesToRead)
-
-        // Let HealthKit wake the app when new sleep samples arrive (the entitlement is already
-        // present); pairs with `startObservingSleepChanges` for in-app refreshes.
-        try? await healthStore.enableBackgroundDelivery(for: sleepType, frequency: .immediate)
     }
 
     /// Whether the user has already been walked through the HealthKit permission flow.
@@ -197,7 +193,9 @@ final class HealthKitManager: ObservableObject {
 
     // MARK: - Observe Changes
 
-    /// Sets up a background observer for new sleep data.
+    /// Observes new sleep samples while the app is running, so a watch sync mid-session refreshes
+    /// the screens without a manual pull. Somnus doesn't enable HealthKit background delivery —
+    /// there's no work to do while backgrounded, and the next launch re-reads Health anyway.
     func startObservingSleepChanges(handler: @escaping () -> Void) {
         let query = HKObserverQuery(sampleType: sleepType, predicate: nil) { _, completionHandler, error in
             if error == nil {
