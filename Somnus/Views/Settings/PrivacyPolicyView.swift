@@ -4,7 +4,7 @@ struct PrivacyPolicyView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("Last updated: 14 August 2026")
+                Text("Last updated: 15 September 2026")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -15,7 +15,7 @@ struct PrivacyPolicyView: View {
 
                 policySection(
                     title: "How Data Is Used",
-                    text: "Your sleep data is processed on your device to calculate sleep scores, sleep debt, trends, and related educational insights. It is not used for advertising, marketing, profiling, or data mining."
+                    text: "Your sleep data is processed on your device to calculate educational sleep-score estimates, sleep debt, trends, and related wellness insights. It is not used for advertising, marketing, profiling, or data mining."
                 )
 
                 policySection(

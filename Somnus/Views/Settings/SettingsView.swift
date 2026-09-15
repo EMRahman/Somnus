@@ -95,6 +95,12 @@ struct SettingsView: View {
                         Text("Privacy Policy")
                     }
 
+                    NavigationLink {
+                        SleepScoreMethodologyView()
+                    } label: {
+                        Text("How Sleep Score Is Calculated")
+                    }
+
                     Link(destination: URL(string: "https://www.sleepfoundation.org")!) {
                         HStack {
                             Text("Sleep Foundation Resources")
@@ -106,7 +112,7 @@ struct SettingsView: View {
                 } header: {
                     Label("About", systemImage: "info.circle.fill")
                 } footer: {
-                    Text("Somnus provides educational insights based on sleep science research. It is not a medical device and should not replace professional medical advice.")
+                    Text("Somnus provides educational wellness estimates from your Apple Health sleep data. It is not a medical device and should not replace professional medical advice.")
                 }
             }
             .navigationTitle("Settings")
@@ -246,6 +252,64 @@ struct SettingsView: View {
     }
 }
 
+// MARK: - Sleep Score Methodology
+
+struct SleepScoreMethodologyView: View {
+    var body: some View {
+        List {
+            Section("What the Score Means") {
+                Text("The Somnus Sleep Score is an educational wellness estimate from 0 to 100. It summarizes the tracked nights in the period being viewed; it is not a clinical measurement, diagnosis, or measure of how you should feel.")
+            }
+
+            Section("Data Source") {
+                Text("Somnus uses sleep times and stages already recorded in Apple Health. It does not independently measure sleep, and its results depend on the completeness and accuracy of those records.")
+            }
+
+            Section("Weighted Components") {
+                scoreComponent(
+                    title: "Duration · 35%",
+                    text: "Compares average recorded sleep with an 8-hour reference. Scores are highest near that reference and decrease as duration moves farther away."
+                )
+                scoreComponent(
+                    title: "Efficiency · 25%",
+                    text: "Compares recorded time asleep with the elapsed time from bedtime to wake time."
+                )
+                scoreComponent(
+                    title: "Consistency · 20%",
+                    text: "Uses the variation in recorded bedtimes across the selected period. Less variation produces a higher component score."
+                )
+                scoreComponent(
+                    title: "Sleep Stages · 20%",
+                    text: "Compares recorded Deep and REM proportions with reference proportions of 20% Deep and 25% REM."
+                )
+            }
+
+            Section("Important Limits") {
+                Text("Consumer sleep tracking and sleep-stage estimates are imperfect. Missing nights are excluded, and a score should be treated as context for your own patterns—not as medical advice or a reason to make a medical decision.")
+            }
+        }
+        .navigationTitle("Sleep Score")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func scoreComponent(title: String, text: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.headline)
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 2)
+    }
+}
+
 #Preview {
     SettingsView()
+}
+
+#Preview("Sleep Score Methodology") {
+    NavigationStack {
+        SleepScoreMethodologyView()
+    }
 }
