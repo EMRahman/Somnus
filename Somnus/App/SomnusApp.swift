@@ -30,8 +30,8 @@ struct OnboardingView: View {
                 onboardingPage(
                     icon: "moon.stars.fill",
                     title: "Welcome to Somnus",
-                    subtitle: "Understand your sleep. Transform your health.",
-                    description: "Somnus analyzes your Apple Watch sleep data to reveal patterns, score your sleep quality, and track your sleep debt to help you consistently achieve 7-8 hours of restorative sleep."
+                    subtitle: "Understand your sleep over time.",
+                    description: "Somnus analyzes your Apple Watch sleep data to show patterns, provide an educational sleep score, and track your shortfall against a personal sleep target."
                 )
                 .tag(0)
 
@@ -39,7 +39,7 @@ struct OnboardingView: View {
                     icon: "chart.xyaxis.line",
                     title: "Track Your Trends",
                     subtitle: "Daily, weekly, monthly, yearly, even 5 or 10 years.",
-                    description: "See how your sleep changes over time with detailed charts showing duration, sleep stages, efficiency, and consistency. Spot patterns you'd never notice on your own."
+                    description: "See how your sleep changes over time with detailed charts showing duration, sleep stages, efficiency, and consistency. Spot patterns that are hard to see one night at a time."
                 )
                 .tag(1)
 

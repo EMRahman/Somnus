@@ -55,7 +55,7 @@ Somnus is built around sleep debt: the gap between the sleep you need and the sl
 ### Debt-First Dashboard
 
 - **Sleep Debt at a Glance** — The headline card shows accumulated debt against your configured target, pairs it with your nightly average for the week, and uses severity styling to make the size of the problem difficult to overlook. Tap it to open the full weekly debt breakdown.
-- **Sleep Score** — A 0–100 nightly composite of duration (35%), efficiency (25%), consistency (20%), and sleep stage quality (20%). It provides context for the latest night without replacing the longer-term debt picture.
+- **Sleep Score** — A 0–100 educational wellness estimate combining duration (35%), efficiency (25%), consistency (20%), and sleep stages (20%). It provides context for the tracked nights in the selected period without replacing the longer-term debt picture.
 - **Last Night Summary** — Duration, bedtime/wake time, and a horizontal stage breakdown bar showing Deep, REM, Core, and Awake proportions.
 - **Weekly Quick Stats** — Average hours, target compliance (nights meeting your configured minimum), and efficiency percentage alongside the headline debt view.
 
@@ -127,13 +127,13 @@ Somnus/
 
 ## Scoring Model
 
-The sleep score (0–100) is built from four components:
+The sleep score (0–100) is an educational wellness estimate built from four components. It summarizes Apple Health records; it is not a clinical measurement or diagnosis.
 
 | Component | Weight | How It's Scored |
 |-----------|--------|-----------------|
-| **Duration** | 35% | 100 at 7–8h, linear penalty for under 7h or over 9h |
-| **Efficiency** | 25% | 100 at ≥ 85% (time asleep ÷ time in bed), scales linearly |
-| **Consistency** | 20% | 100 at ≤ 15 min bedtime σ, drops toward 0 at 120+ min |
+| **Duration** | 35% | Highest near the 8h reference; decreases as the period average moves farther away |
+| **Efficiency** | 25% | Rewards a higher ratio of time asleep to the elapsed bedtime-to-wake span |
+| **Consistency** | 20% | Uses bedtime standard deviation; decreases from 100 toward 0 at 120+ minutes |
 | **Sleep Stages** | 20% | Compares deep (target 20%) and REM (target 25%) to ideals |
 
 Scores map to grades:

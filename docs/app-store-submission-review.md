@@ -1,6 +1,6 @@
 # App Store Submission Readiness — Somnus
 
-Last verified: 15 August 2026
+Last verified: 15 September 2026
 
 ## Binary status
 
@@ -10,6 +10,7 @@ Somnus 1.0.0 (build 1) is ready to upload as an iOS/iPadOS archive:
 - Release archive and App Store Connect export both succeed.
 - Distribution export contains an arm64 binary, dSYM symbols, HealthKit entitlements, and `get-task-allow = false`.
 - The 1024px source icon and generated iPhone/iPad icons are opaque.
+- The iPhone and iPad App Store screenshots are opaque RGB images with no alpha channels.
 - `PrivacyInfo.xcprivacy` is bundled and declares the app-only UserDefaults reason `CA92.1`.
 - `Info.plist` includes the read-only HealthKit purpose string and declares no non-exempt encryption.
 - The app exposes its privacy policy in Settings and requests HealthKit permission only from explicit user actions.
@@ -34,7 +35,7 @@ These require product/account information and cannot be completed from the repos
 
 App Review devices generally have no Apple Watch sleep history, so every data screen would otherwise show the intentional "No Sleep Data Yet" state. Rather than shipping synthetic data in the production binary — `ScreenshotSupport` stays behind `#if DEBUG` and is compiled out of App Store builds — the notes tell the reviewer how to add sleep samples in the Health app.
 
-> Somnus is a read-only HealthKit sleep-analysis app. It requests access only after the user taps the onboarding or Settings connection button. Sleep scores, debt, and trends are calculated entirely on-device; the app has no account, analytics, advertising, backend, or third-party SDKs, and never writes Health data.
+> Somnus is a read-only HealthKit sleep-analysis app. It requests access only after the user taps the onboarding or Settings connection button. Its Sleep Score is identified in-app as an educational wellness estimate, with the data source, weighted methodology, and limitations disclosed under Settings → How Sleep Score Is Calculated. Scores, debt, and trends are calculated entirely on-device; the app has no account, analytics, advertising, backend, or third-party SDKs, and never writes Health data.
 >
 > Somnus renders data from sleep-analysis samples already present in Apple Health, normally recorded by an Apple Watch. On a device with no sleep history the app intentionally shows a "No Sleep Data Yet" guidance state rather than a misleading zero score. To see the full Dashboard and Trends UI:
 >

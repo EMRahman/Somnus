@@ -1,6 +1,6 @@
 # Somnus Privacy Policy
 
-Last updated: 14 August 2026
+Last updated: 15 September 2026
 
 ## Data Somnus Accesses
 
@@ -8,7 +8,7 @@ With your permission, Somnus reads sleep analysis data from Apple Health, includ
 
 ## How Data Is Used
 
-Your sleep data is processed on your device to calculate sleep scores, sleep debt, trends, and related educational insights. It is not used for advertising, marketing, profiling, or data mining.
+Your sleep data is processed on your device to calculate educational sleep-score estimates, sleep debt, trends, and related wellness insights. It is not used for advertising, marketing, profiling, or data mining.
 
 ## Collection and Sharing
 
