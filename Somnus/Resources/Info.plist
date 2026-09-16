@@ -26,6 +26,8 @@
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Somnus needs access to your sleep data to calculate your sleep score, track your sleep debt, and reveal long-term trends and patterns.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Somnus does not save or modify Apple Health data. Your sleep records are used only for on-device analysis.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
