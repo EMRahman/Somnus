@@ -2,7 +2,9 @@
 
 Submission checklist reviewed: 16 September 2026
 
-Binary, tests, and distribution export last verified: 15 September 2026
+Binary and distribution export last verified: 16 September 2026
+
+Unit/UI test suites last verified: 15 September 2026
 
 This is the working checklist for the first public iPhone/iPad release. Check off App Store Connect tasks only after completing them in the account; repository checks do not prove that metadata, declarations, or uploads have been submitted to Apple. Apple's validation and App Review may still request additional information.
 
@@ -35,12 +37,22 @@ Somnus 1.0.0 (build 1) is ready to upload as an iOS/iPadOS archive:
 - The 1024px source icon and generated iPhone/iPad icons are opaque.
 - The iPhone and iPad App Store screenshots are opaque RGB images with no alpha channels.
 - `PrivacyInfo.xcprivacy` is bundled and declares the app-only UserDefaults reason `CA92.1`.
-- `Info.plist` includes the read-only HealthKit purpose string and declares no non-exempt encryption.
+- `Info.plist` includes both `NSHealthShareUsageDescription` and `NSHealthUpdateUsageDescription`, and declares no non-exempt encryption. The update-purpose string truthfully states that Somnus does not save or modify Apple Health data; its presence does not request or grant write access. Authorization remains read-only with `toShare: []`.
 - The app exposes its privacy policy in Settings and requests HealthKit permission only from explicit user actions.
 - The only HealthKit entitlement claimed is `com.apple.developer.healthkit`. Background delivery was removed for 1.0: Somnus has no work to perform while backgrounded, and its `HKObserverQuery` runs only while the app is open.
 - Twelve unit tests and the UI release smoke test pass.
 
 Rebuild the distribution archive from a clean checkout at submission time rather than reusing an older local export. These are prior verification results, not a claim that the final submission build has already been uploaded.
+
+### HealthKit purpose-string validation fix — 16 September 2026
+
+The missing `NSHealthUpdateUsageDescription` was added to the source plist after a reported “Missing purpose string in Info.plist” validation failure. The complete error's named key was not supplied, so this addresses the likely HealthKit update-purpose issue rather than claiming every possible purpose-string error is resolved. The existing read-purpose string was already present in both the source and the previous release archive.
+
+Adding the update-purpose string is a metadata-only fix: do not add HealthKit write types or change the app's read-only privacy declarations. Apple may require purpose strings for referenced sensitive APIs even when the app does not use those operations. [Apple purpose-string validation guidance](https://developer.apple.com/documentation/uikit/requesting-access-to-protected-resources)
+
+Create and validate a **new archive** containing the fix; an old archive will not pick up source-plist edits. Confirm both HealthKit purpose strings are nonempty in the archived/exported app's `Info.plist`, then retry Apple's validation. If the error names a different key, investigate that exact key and bundle path before adding further descriptions. Increment the build number only if the previous version/build combination has already been uploaded. Local archive/export success does not prove Apple's server-side validation has passed.
+
+Local revalidation on 16 September passed: source-plist lint, a fresh Release archive, an App Store Connect distribution export, both purpose strings in the archive and exported IPA, and distribution code-signature verification. The export retains HealthKit and `get-task-allow = false`. Unit/UI suites were not rerun for this metadata-only change, and the build was not uploaded or submitted to Apple's server-side validation.
 
 ## App Store Connect tasks
 
@@ -178,6 +190,7 @@ If onboarding has already been skipped, request Health access from Settings and 
 ## Reverification commands
 
 ```bash
+plutil -lint Somnus/Resources/Info.plist
 xcodebuild -version
 xcrun --sdk iphoneos --show-sdk-version
 xcodegen generate
@@ -192,6 +205,15 @@ Confirm the signed app claims HealthKit but not background delivery:
 ```bash
 codesign -d --entitlements - --xml \
   /private/tmp/Somnus-release.xcarchive/Products/Applications/Somnus.app 2>/dev/null | plutil -p -
+```
+
+Check the purpose strings in the newly built archive:
+
+```bash
+/usr/libexec/PlistBuddy -c 'Print :NSHealthShareUsageDescription' \
+  /private/tmp/Somnus-release.xcarchive/Products/Applications/Somnus.app/Info.plist
+/usr/libexec/PlistBuddy -c 'Print :NSHealthUpdateUsageDescription' \
+  /private/tmp/Somnus-release.xcarchive/Products/Applications/Somnus.app/Info.plist
 ```
 
 For the exported **distribution** app, also confirm `get-task-allow = false`, bundled `PrivacyInfo.xcprivacy`, the expected version/build, and opaque generated app icons. The intermediate archive may be development-signed; distribution entitlements must be checked on the distribution export, not inferred from the archive. Use Organizer for the final export/validation/upload and retain its delivery logs with the submission build.
