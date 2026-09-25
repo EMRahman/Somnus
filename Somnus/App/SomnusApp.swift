@@ -160,9 +160,9 @@ struct OnboardingView: View {
                             ProgressView()
                                 .tint(.white)
                         } else {
-                            Image(systemName: "checkmark.shield.fill")
+                            Image(systemName: "arrow.right")
                         }
-                        Text("Grant Access & Get Started")
+                        Text("Continue")
                     }
                     .font(.headline)
                     .foregroundStyle(.white)
@@ -178,12 +178,6 @@ struct OnboardingView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 .disabled(isRequestingAccess)
-
-                Button("Skip for Now") {
-                    hasCompletedOnboarding = true
-                }
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
             }
             .padding(.horizontal, 24)
 

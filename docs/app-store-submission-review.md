@@ -179,12 +179,12 @@ Somnus renders data from sleep-analysis samples already present in Apple Health,
 
 1. Open the Health app → Browse/Search (or the iPad sidebar) → Sleep → Add Data. The navigation label varies with the OS version.
 2. Choose Asleep, not In Bed, and add the most recent two or three completed nights, including last night. Each sample should start roughly 23:00 on one date and end 07:00 the following date. In-bed-only samples are deliberately excluded from sleep analysis.
-3. Launch Somnus, tap Grant Access & Get Started, and allow Sleep Analysis when the Health sheet appears.
+3. Launch Somnus, advance to the Health access page, tap Continue, and allow Sleep Analysis when the Health sheet appears.
 4. Pull down on the Dashboard to refresh. Trends → 1W will then show the sleep-debt and duration charts.
 
 Manual Asleep samples are sufficient to test duration and debt. Actual Apple Watch stage history is needed to exercise the real Deep/REM breakdown. Longer Trends periods summarize the available history and may have only a few populated buckets on a review device.
 
-If onboarding has already been skipped, request Health access from Settings and then refresh the Dashboard. Users may also skip Health access entirely and browse the app's guidance and Settings. No login, subscription, or purchase is required.
+If the HealthKit authorization sheet has already been answered, access can be reviewed or changed in Apple Health. Users who decline access on the system sheet can still browse the app's guidance and Settings. No login, subscription, or purchase is required.
 ```
 
 ## Reverification commands
