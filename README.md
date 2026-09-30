@@ -15,13 +15,13 @@ A native iOS app that reads Apple Watch sleep data and turns it into a running v
 [![HealthKit](https://img.shields.io/badge/HealthKit-1B1926?style=flat-square&logo=apple&logoColor=FF6B81)](https://developer.apple.com/documentation/healthkit)
 [![Swift Charts](https://img.shields.io/badge/Swift%20Charts-1B1926?style=flat-square&logo=apple&logoColor=2BD466)](https://developer.apple.com/documentation/charts)
 
-[![App Store](https://img.shields.io/badge/App%20Store-Available-2BD466?style=flat-square&logo=appstore&logoColor=white&labelColor=0B0B12)](https://apps.apple.com/gb/app/somnus-sleep-debt/id6812648966)
+[![App Store](https://img.shields.io/badge/App%20Store-Available-2BD466?style=flat-square&logo=appstore&logoColor=white&labelColor=0B0B12)](https://apps.apple.com/app/id6812648966)
 [![License](https://img.shields.io/github/license/EMRahman/Somnus?style=flat-square&label=License&labelColor=0B0B12&color=2BD466)](LICENSE)
 [![Website](https://img.shields.io/github/actions/workflow/status/EMRahman/Somnus/pages.yml?style=flat-square&label=Website&logo=githubpages&logoColor=white&labelColor=0B0B12&color=2BD466)](https://emrahman.github.io/Somnus/)
 [![Codebase](https://img.shields.io/github/languages/top/EMRahman/Somnus?style=flat-square&label=Swift%20share&logo=swift&logoColor=white&labelColor=0B0B12&color=F05138)](https://github.com/EMRahman/Somnus)
 [![Privacy](https://img.shields.io/badge/Privacy-100%25%20on--device-2BD466?style=flat-square&logo=apple&logoColor=white&labelColor=0B0B12)](docs/privacy-policy.md)
 
-[**Download on the App Store**](https://apps.apple.com/gb/app/somnus-sleep-debt/id6812648966) · [Website](https://emrahman.github.io/Somnus/) · [Support](https://emrahman.github.io/Somnus/support.html) · [Privacy Policy](https://emrahman.github.io/Somnus/privacy.html)
+[**Download on the App Store**](https://apps.apple.com/app/id6812648966) · [Website](https://emrahman.github.io/Somnus/) · [Support](https://emrahman.github.io/Somnus/support.html) · [Privacy Policy](https://emrahman.github.io/Somnus/privacy.html)
 
 </div>
 
