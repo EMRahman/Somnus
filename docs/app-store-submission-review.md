@@ -6,7 +6,7 @@ Binary and distribution export last verified: 16 September 2026
 
 Unit/UI test suites last verified: 15 September 2026
 
-Release status: live on the App Store as of 30 September 2026 — [Somnus: Sleep Debt](https://apps.apple.com/gb/app/somnus-sleep-debt/id6812648966). The other checklist boxes below are left as they were and were not re-audited when the status changed.
+Release status: live on the App Store as of 30 September 2026 — [Somnus: Sleep Debt](https://apps.apple.com/app/id6812648966). The other checklist boxes below are left as they were and were not re-audited when the status changed.
 
 This is the working checklist for the first public iPhone/iPad release. Check off App Store Connect tasks only after completing them in the account; repository checks do not prove that metadata, declarations, or uploads have been submitted to Apple. Apple's validation and App Review may still request additional information.
 
@@ -119,7 +119,7 @@ These are not additional mandatory metadata fields, but the device checks are st
 - [ ] Open the draft submission/App Review section and click **Submit for Review**. Confirm **Waiting for Review** or **In Review**, not merely **Ready for Review**. [Apple submission steps](https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app)
 - [ ] Monitor App Review messages and respond to questions or rejection reasons. If a binary change is required, upload a new build number and select the replacement build before resubmitting.
 - [ ] After approval, release manually if that option was selected; otherwise confirm the automatic/scheduled release. Verify the public product page and download. Publication can take up to 24 hours after approval/release. [Apple publishing workflow](https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/overview-of-publishing-your-app-on-the-app-store)
-- [x] After the app is live, update the website and README's “Pending submission” status and add the real App Store link. Done: both now show the app as available and link to [the App Store listing](https://apps.apple.com/gb/app/somnus-sleep-debt/id6812648966). This was post-launch housekeeping, not a review prerequisite.
+- [x] After the app is live, update the website and README's “Pending submission” status and add the real App Store link. Done: both now show the app as available and link to [the App Store listing](https://apps.apple.com/app/id6812648966). This was post-launch housekeeping, not a review prerequisite.
 
 ## Suggested listing copy
 
