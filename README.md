@@ -52,6 +52,12 @@ Somnus is built around sleep debt: the gap between the sleep you need and the sl
 
 ## Features
 
+### Interactive Browser Demo
+
+The marketing site's **Try in your browser** section embeds an interactive iPhone-style replica of the app. Explore Dashboard, Trends, and Settings using a deterministic fictional sleep history, including the 1D, 1W, 1M, 1Y, 5Y, and 10Y ranges. Changing the sleep target or minimum recalculates the demo locally. It never connects to Apple Health.
+
+The buildless demo lives in [`website/demo.html`](website/demo.html); see [`website/README.md`](website/README.md) for preview and verification instructions.
+
 ### Debt-First Dashboard
 
 - **Sleep Debt at a Glance** — The headline card shows accumulated debt against your configured target, pairs it with your nightly average for the week, and uses severity styling to make the size of the problem difficult to overlook. Tap it to open the full weekly debt breakdown.
