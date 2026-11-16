@@ -103,14 +103,7 @@ struct WeekdayDebtChart: View {
                         }
                     }
                 } else if let hours = summary.averageHours, hours > 0 {
-                    BarMark(x: .value("Weekday", Double(index)), y: .value("Average shortfall", hours), width: .ratio(0.65))
-                        .foregroundStyle(Color.chartBarBelow.opacity(summary.weekday == selectedWeekday ? 1 : 0.5))
-                        .cornerRadius(4)
-                        .annotation(position: .top) {
-                            Text(String(format: "%.1f", hours)).font(.caption2)
-                        }
-                        .accessibilityLabel("\(summary.fullLabel) nights")
-                        .accessibilityValue(String(format: "%.1f hours average, %d recorded nights", hours, summary.recordedCount))
+                    averageBar(summary, index: index, hours: hours)
                 } else {
                     PointMark(x: .value("Weekday", Double(index)), y: .value("Average shortfall", 0))
                         .symbol(summary.averageHours == nil ? .cross : .circle)
@@ -139,6 +132,31 @@ struct WeekdayDebtChart: View {
             }
         }
         .frame(height: 190)
+    }
+
+    // A numeric x scale has no band step, so `.ratio` widths collapse to zero and only
+    // the annotation renders. Give the bar explicit edges, anchored at zero, instead.
+    private func averageBar(_ summary: WeekdayDebtSummary, index: Int, hours: Double) -> some ChartContent {
+        let x = Double(index)
+        let color: Color = Color.chartBarBelow.opacity(summary.weekday == selectedWeekday ? 1.0 : 0.5)
+        let label: String = String(format: "%.1f", hours)
+        let accessibilityLabel: String = "\(summary.fullLabel) nights"
+        let accessibilityValue: String = String(
+            format: "%.1f hours average, %d recorded nights", hours, summary.recordedCount
+        )
+        let xStart: PlottableValue<Double> = .value("Weekday", x - 0.325)
+        let xEnd: PlottableValue<Double> = .value("Weekday", x + 0.325)
+        let yStart: PlottableValue<Double> = .value("Average shortfall", 0.0)
+        let yEnd: PlottableValue<Double> = .value("Average shortfall", hours)
+        let bar = RectangleMark(xStart: xStart, xEnd: xEnd, yStart: yStart, yEnd: yEnd)
+        return bar
+            .foregroundStyle(color)
+            .cornerRadius(4)
+            .annotation(position: .top) {
+                Text(label).font(.caption2)
+            }
+            .accessibilityLabel(accessibilityLabel)
+            .accessibilityValue(accessibilityValue)
     }
 
     private var debtAxis: some AxisContent {
