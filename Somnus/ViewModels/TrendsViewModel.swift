@@ -14,6 +14,7 @@ final class TrendsViewModel: ObservableObject {
     @Published var debtChartData: [SleepChartDataPoint] = []
     /// Running total of the nightly debt bars — each point's rise equals that bucket's bar.
     @Published var cumulativeDebtData: [SleepChartDataPoint] = []
+    @Published var weekdayDebtData: [WeekdayDebtSummary] = []
     @Published var patternFlags: [SleepPatternFlag] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
@@ -119,6 +120,7 @@ final class TrendsViewModel: ObservableObject {
             timelineData = []
             debtChartData = []
             cumulativeDebtData = []
+            weekdayDebtData = []
             patternFlags = []
             isLoading = false
             return
@@ -148,6 +150,11 @@ final class TrendsViewModel: ObservableObject {
         // and would otherwise register as a full night of phantom debt.
         let tracked = records.filter { $0.totalSleepHours > 0 }
         let target = SleepAnalysisEngine.targetSleepHours
+
+        let range = selectedPeriod.dateRange
+        weekdayDebtData = SleepAnalysisEngine.weekdayDebt(
+            from: records, target: target, wakeRange: range.start..<range.end
+        )
 
         patternFlags = SleepAnalysisEngine.detectPatterns(from: records)
 
