@@ -71,6 +71,8 @@ The primary Trends chart pairs each period's shortfall with a running cumulative
 
 Switch between six time horizons—Daily, Weekly, Monthly, Yearly, 5 Years, and 10 Years—to see whether debt is an isolated dip, a recurring pattern, or a deficit that has compounded over months or years. The same debt calculation is reused throughout the app, deduplicating fragmented sleep sessions and excluding nights with no recorded sleep so missing data does not become phantom debt.
 
+For **1M and longer**, switch **By time / By weekday** inside Sleep Debt to spot recurring bad nights. The month view groups individual nights Monday–Sunday, oldest first; longer ranges compare average shortfall per recorded night. Select a weekday for its recording count and dated monthly values, monthly averages (1Y), or yearly averages (5Y/10Y). Night labels refer to their evening, so Monday night includes Tuesday morning. Missing nights remain distinct from recorded nights with zero shortfall.
+
 ### Supporting Sleep Charts
 
 Built with Apple's Swift Charts framework, duration charts provide the nightly and historical detail behind the debt trend:

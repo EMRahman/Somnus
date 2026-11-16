@@ -255,6 +255,54 @@ struct SleepAnalysisEngine {
         .sorted { $0.date < $1.date }
     }
 
+    /// Keep every calendar night in the window: nil means unrecorded, zero means a
+    /// tracked night that met the target. Merge fragmented wake dates before debt math.
+    static func weekdayDebt(
+        from records: [SleepRecord], target: Double, wakeRange: Range<Date>,
+        calendar: Calendar = .current
+    ) -> [WeekdayDebtSummary] {
+        let tracked = records.filter { $0.totalSleepHours > 0 }
+        let totals = Dictionary(grouping: tracked) { calendar.startOfDay(for: $0.date) }
+            .mapValues { sessions in sessions.reduce(0) { $0 + $1.totalSleepHours } }
+        var grouped: [Int: [WeekdayDebtNight]] = [:]
+        var wakeDay = calendar.startOfDay(for: wakeRange.lowerBound)
+        while wakeDay < wakeRange.upperBound {
+            if wakeDay >= wakeRange.lowerBound,
+               let evening = calendar.date(byAdding: .day, value: -1, to: wakeDay) {
+                let weekday = calendar.component(.weekday, from: evening)
+                let occurrence = grouped[weekday, default: []].count
+                grouped[weekday, default: []].append(WeekdayDebtNight(
+                    date: evening,
+                    hours: totals[wakeDay].map { max(0, target - $0) },
+                    occurrence: occurrence
+                ))
+            }
+            guard let next = calendar.date(byAdding: .day, value: 1, to: wakeDay) else { break }
+            wakeDay = next
+        }
+        return [2, 3, 4, 5, 6, 7, 1].map {
+            WeekdayDebtSummary(weekday: $0, nights: grouped[$0, default: []])
+        }
+    }
+
+    /// Average the nightly shortfalls, including recorded zero-debt nights. Never
+    /// subtract an average sleep duration from the target: surplus cannot hide bad nights.
+    static func weekdayDebtBuckets(
+        for summary: WeekdayDebtSummary, component: Calendar.Component,
+        calendar: Calendar = .current
+    ) -> [WeekdayDebtBucket] {
+        Dictionary(grouping: summary.nights) {
+            calendar.dateInterval(of: component, for: $0.date)?.start ?? $0.date
+        }.map { date, nights in
+            let recorded = nights.compactMap(\.hours)
+            return WeekdayDebtBucket(
+                date: date,
+                hours: recorded.isEmpty ? nil : recorded.reduce(0, +) / Double(recorded.count),
+                recordedCount: recorded.count
+            )
+        }.sorted { $0.date < $1.date }
+    }
+
     /// Computes sleep stage breakdown for a record.
     static func stageBreakdown(for record: SleepRecord) -> [StageChartDataPoint] {
         let total = record.totalSleepDuration + record.awakeDuration

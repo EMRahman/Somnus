@@ -19,6 +19,10 @@ enum ScreenshotSupport {
         ProcessInfo.processInfo.arguments.contains(modeArgument)
     }
 
+    static var showsWeekdayDebt: Bool {
+        isEnabled && ProcessInfo.processInfo.arguments.contains("-screenshotWeekdayDebt")
+    }
+
     static var destination: Destination {
         guard isEnabled,
               let argument = ProcessInfo.processInfo.arguments.first(where: {
@@ -33,27 +37,16 @@ enum ScreenshotSupport {
 
     static func records(for period: TimePeriod) -> [SleepRecord] {
         let count: Int
-        let dayStride: Int
+        let dayStride = 1
 
         switch period {
         case .daily:
             count = 1
-            dayStride = 1
         case .weekly:
             count = 7
-            dayStride = 1
-        case .monthly:
-            count = 28
-            dayStride = 1
-        case .yearly:
-            count = 52
-            dayStride = 7
-        case .fiveYears:
-            count = 60
-            dayStride = 30
-        case .tenYears:
-            count = 120
-            dayStride = 30
+        case .monthly, .yearly, .fiveYears, .tenYears:
+            let range = period.dateRange
+            count = Calendar.current.dateComponents([.day], from: range.start, to: range.end).day ?? 28
         }
 
         let hours = [7.2, 7.8, 6.5, 8.1, 7.4, 6.9, 7.6]
@@ -72,7 +65,17 @@ enum ScreenshotSupport {
                 second: 0,
                 of: bedtimeDay
             ) ?? bedtimeDay
-            let stages = makeStages(bedtime: bedtime, sleepHours: hours[index % hours.count])
+            let sleepHours: Double
+            if period == .daily || period == .weekly {
+                sleepHours = hours[index % hours.count]
+            } else {
+                // Populate all weekdays so the simulator can exercise recurring-night
+                // comparisons, with modest variation between successive weeks.
+                let weekday = calendar.component(.weekday, from: bedtimeDay)
+                let weekdayHours = [7.6, 6.5, 7.2, 7.6, 7.4, 7.8, 8.1]
+                sleepHours = weekdayHours[weekday - 1] + Double((index / 7) % 4) * 0.08
+            }
+            let stages = makeStages(bedtime: bedtime, sleepHours: sleepHours)
 
             return SleepRecord(
                 date: wakeDay,

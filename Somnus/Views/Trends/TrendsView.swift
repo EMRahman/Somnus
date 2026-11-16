@@ -4,6 +4,24 @@ import Charts
 struct TrendsView: View {
     @StateObject private var viewModel = TrendsViewModel()
     @EnvironmentObject private var navigation: AppNavigation
+    @State private var debtGrouping: DebtGrouping = .time
+
+    private enum DebtGrouping: String, CaseIterable {
+        case time = "By time"
+        case weekday = "By weekday"
+    }
+
+    init() {
+        #if DEBUG
+        if ScreenshotSupport.showsWeekdayDebt {
+            _debtGrouping = State(initialValue: .weekday)
+        }
+        #endif
+    }
+
+    private var supportsWeekdayDebt: Bool {
+        viewModel.selectedPeriod != .daily && viewModel.selectedPeriod != .weekly
+    }
 
     var body: some View {
         NavigationStack {
@@ -400,6 +418,29 @@ struct TrendsView: View {
                     .foregroundStyle(severityColor(viewModel.debtSeverity))
             }
 
+            if supportsWeekdayDebt {
+                Picker("Debt grouping", selection: $debtGrouping) {
+                    ForEach(DebtGrouping.allCases, id: \.self) { grouping in
+                        Text(grouping.rawValue).tag(grouping)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("debt-grouping")
+            }
+
+            if supportsWeekdayDebt && debtGrouping == .weekday {
+                WeekdayDebtChart(summaries: viewModel.weekdayDebtData, period: viewModel.selectedPeriod)
+            } else {
+                chronologicalDebtChart
+            }
+        }
+        .padding()
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var chronologicalDebtChart: some View {
+        VStack(alignment: .leading, spacing: 16) {
             // Nightly debt bars overlaid on the cumulative-debt line. The line is the running
             // total of the bars, so its rise between two days is exactly that day's bar — both
             // share a single hours axis, which makes the correlation read directly.
@@ -483,9 +524,6 @@ struct TrendsView: View {
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     /// Upper bound for the sleep-debt chart's y-axis — the peak cumulative debt plus a little
