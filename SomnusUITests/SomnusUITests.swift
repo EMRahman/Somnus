@@ -79,6 +79,49 @@ final class SomnusUITests: XCTestCase {
         XCTAssertFalse(app.buttons["By weekday"].exists)
     }
 
+    /// Captures App Store screenshots of the weekday sleep-debt views from the DEBUG-only
+    /// synthetic fixture. Skipped unless run with TEST_RUNNER_SOMNUS_CAPTURE_SCREENSHOTS=1.
+    func testCaptureWeekdayDebtScreenshots() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["SOMNUS_CAPTURE_SCREENSHOTS"] == "1")
+        app.terminate()
+        app.launchArguments += [
+            "-screenshotMode", "-screenshotDestination=monthly-duration", "-screenshotWeekdayDebt"
+        ]
+        app.launch()
+
+        let monday = app.buttons["weekday-debt-2"]
+        XCTAssertTrue(monday.waitForExistence(timeout: 5))
+        scrollSleepDebtIntoView()
+        attachScreenshot("04-weekday-month")
+
+        app.buttons["1Y"].tap()
+        XCTAssertTrue(monday.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Monthly averages"].waitForExistence(timeout: 5))
+        scrollSleepDebtIntoView()
+        attachScreenshot("05-weekday-year")
+    }
+
+    /// When the Sleep Debt card is cut off (compact iPhone layouts), scrolls until its heading
+    /// sits just below the collapsed navigation bar. Larger screens are left unscrolled.
+    private func scrollSleepDebtIntoView() {
+        let heading = app.staticTexts["Sleep Debt"]
+        XCTAssertTrue(heading.waitForExistence(timeout: 5))
+        let footnote = app.staticTexts.containing(
+            NSPredicate(format: "label BEGINSWITH %@", "Nights are labelled")
+        ).firstMatch
+        let window = app.windows.firstMatch
+        let visibleBottom = window.frame.maxY - window.frame.height * 0.1
+        guard !footnote.exists || footnote.frame.maxY > visibleBottom else { return }
+        let targetY = window.frame.minY + window.frame.height * 0.15
+        for _ in 0..<6 where heading.frame.minY > targetY + 20 {
+            let distance = min(heading.frame.minY - targetY, window.frame.height * 0.5)
+            let start = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+            let end = start.withOffset(CGVector(dx: 0, dy: -distance))
+            start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.3)
+        }
+        sleep(1)
+    }
+
     private func attachScreenshot(_ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name

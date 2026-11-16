@@ -166,8 +166,8 @@ Inspect inherited screenshots before uploading duplicates. Existing assets show 
 
 | App Store device slot | Existing assets, in order | File dimensions |
 | --- | --- | --- |
-| Large iPhone display (existing `iphone-6.9` set) | [Dashboard](app-store-screenshots/iphone-6.9/01-dashboard.png), [Sleep Debt](app-store-screenshots/iphone-6.9/02-sleep-debt.png), [Sleep Duration](app-store-screenshots/iphone-6.9/03-sleep-duration.png) | 1320 × 2868 portrait; no alpha |
-| iPad 13-inch | [Dashboard](app-store-screenshots/ipad-13/01-dashboard.png), [Sleep Debt](app-store-screenshots/ipad-13/02-sleep-debt.png), [Sleep Duration](app-store-screenshots/ipad-13/03-sleep-duration.png) | 2064 × 2752 portrait; no alpha |
+| Large iPhone display (existing `iphone-6.9` set) | [Dashboard](app-store-screenshots/iphone-6.9/01-dashboard.png), [Sleep Debt](app-store-screenshots/iphone-6.9/02-sleep-debt.png), [Sleep Duration](app-store-screenshots/iphone-6.9/03-sleep-duration.png), [Weekday month](app-store-screenshots/iphone-6.9/04-weekday-month.png), [Weekday year](app-store-screenshots/iphone-6.9/05-weekday-year.png) | 1320 × 2868 portrait; no alpha |
+| iPad 13-inch | [Dashboard](app-store-screenshots/ipad-13/01-dashboard.png), [Sleep Debt](app-store-screenshots/ipad-13/02-sleep-debt.png), [Sleep Duration](app-store-screenshots/ipad-13/03-sleep-duration.png), [Weekday month](app-store-screenshots/ipad-13/04-weekday-month.png), [Weekday year](app-store-screenshots/ipad-13/05-weekday-year.png) | 2064 × 2752 portrait; no alpha |
 
 Apple currently accepts these dimensions; iPad screenshots are needed because the app supports iPad. Confirm the slots and validation shown in the account. The physical **iPhone 16** is the test phone, not a substitute for the large-display set. Capture new large-display assets on a suitable simulator/device; do not stretch phone screenshots to invent another device size. [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
 
@@ -179,7 +179,7 @@ xcrun simctl launch --terminate-running-process booted com.ehsanrahman.somnus \
   -screenshotDestination=monthly-duration -screenshotWeekdayDebt
 ```
 
-Select a specific simulator if several are booted. These flags are absent from App Store builds. Scroll to show the full chart, labels and selected-day details. Check dimensions, opacity and legibility before adding/uploading an asset. No new screenshot file is claimed to exist yet.
+Select a specific simulator if several are booted. These flags are absent from App Store builds. Scroll to show the full chart, labels and selected-day details. Check dimensions, opacity and legibility before adding/uploading an asset. The 04/05 weekday screenshots were captured on 16 November 2026 (iPhone 18 Pro Max and iPad Pro 13-inch (M5) simulators, iOS 27.2, status bar overridden to 09:41) by running `TEST_RUNNER_SOMNUS_CAPTURE_SCREENSHOTS=1 xcodebuild test ... -only-testing:SomnusUITests/SomnusUITests/testCaptureWeekdayDebtScreenshots` and exporting the result bundle's attachments.
 
 ## Physical-device acceptance checks
 
@@ -270,16 +270,16 @@ Fill this with evidence as work happens. Keep pending items pending; repository 
 
 | Item | Value / result |
 | --- | --- |
-| Release source commit | Pending: merged release-preparation PR SHA |
-| Live version / latest uploaded build inspected in account | Pending |
-| Existing/new 1.1.0 version-page URL / English locale | Pending |
-| Version/build availability | Pending: proposed 1.1.0 (4) |
-| What's New / description / review notes saved | Pending |
-| Inherited screenshots and URLs checked | Pending |
-| Contact, declarations and release settings checked | Pending |
-| Archive / export / upload evidence | Pending |
-| Selected processed build / compliance state | Pending |
+| Release source commit | `bb2f989` (main, includes PR #14 fix for missing 1Y/5Y/10Y weekday bars) |
+| Live version / latest uploaded build inspected in account | 1.0 Ready for Distribution; builds 1–3 under 1.0.0; no 1.1.0 draft existed |
+| Existing/new 1.1.0 version-page URL / English locale | Created 16 Nov 2026: https://appstoreconnect.apple.com/apps/6812648966/distribution/ios/version/inflight ; English (U.K.) |
+| Version/build availability | 1.1.0 (4) confirmed unused before upload |
+| What's New / description / review notes saved | Saved from this document and verified after reload; promotional text updated to the optional copy; keywords kept, `weekday` appended (92 chars) |
+| Inherited screenshots and URLs checked | Inherited 01–03 retained; 04/05 weekday screenshots added to iPhone large-display and iPad 13" slots (5 of 10 each). Support, marketing and privacy URLs return 200 |
+| Contact, declarations and release settings checked | Existing review contact retained; sign-in not required. Release changed from automatic to **manual**; phased release off and rating kept (unchanged). App Privacy/age rating/pricing not edited |
+| Archive / export / upload evidence | Xcode 27.2 (27B52), iOS SDK 27.2. Full test suite passed (20 unit, 2 UI). Archive verified 1.1.0 / 4, arm64, dSYM, privacy manifest, HealthKit entitlement, no screenshot flags. App Store Connect export signed Apple Distribution, `get-task-allow = false`. Uploaded via `xcodebuild -exportArchive` (destination upload); Apple validation passed, "Upload succeeded" |
+| Selected processed build / compliance state | Build 4 processed (Ready to Submit) and selected on 1.1.0; no Missing Compliance prompt (`ITSAppUsesNonExemptEncryption = false`) |
 | iPhone 16, iOS 27.2.1 candidate result | Pending |
 | iPad result | Pending |
-| Remaining blockers / owner input | Pending account inspection, build/upload and candidate testing |
-| Submission / release state | Not submitted by this handoff |
+| Remaining blockers / owner input | Physical iPhone 16 acceptance checks for 1.1.0 (4) via TestFlight; owner review of the saved draft |
+| Submission / release state | Saved draft, Prepare for Submission. **Not** added for review or submitted |
