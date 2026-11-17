@@ -5,7 +5,7 @@
   const content = document.getElementById('app-content');
   const dialog = document.getElementById('info-dialog');
   const state = {
-    tab: 'dashboard', period: '1W', target: 8, minimum: 7,
+    tab: 'dashboard', period: '1W', target: 8, minimum: 7, debtGrouping: 'overTime', weekday: 0,
     views: {
       dashboard: { scrollTop: 0, detailOpen: false },
       trends: { scrollTop: 0, detailOpen: false },
@@ -115,6 +115,28 @@
       return `<g data-point="${escape(title)}" tabindex="0" role="button" aria-label="${escape(title)}">${n.segments.map(seg => `<rect x="${left}" y="${y(seg.start)}" width="${width}" height="${Math.max(1, y(seg.end) - y(seg.start))}" rx=".7" fill="${stageColors[seg.stage]}"/>`).join('')}<rect x="${i * barWidth}" y="8" width="${barWidth}" height="232" fill="transparent"/><text class="bar-label" text-anchor="middle" x="${(i + .5) * barWidth}" y="${(y(n.bedtimeMinutes) + y(n.wakeMinutes)) / 2 + 3}">${num(n.hours)}h</text><title>${escape(title)}</title></g>`;
     }).join('')}${xLabels(nights, 282, 259)}</svg>${stageLegend(['deep', 'core', 'rem', 'awake'].map(stage => ({ stage })))}`;
   }
+  function weekdayChart(s) {
+    const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const groups = data.weekdayDebt(s.records, state.target, state.period);
+    const selected = groups[state.weekday];
+    const monthly = state.period === '1M';
+    const maximum = Math.ceil(Math.max(1, ...groups.flatMap(g => monthly ? g.nights.map(n => n.hours) : [g.average || 0])) * 1.15);
+    const bars = groups.map((group, i) => {
+      const values = monthly ? group.nights.map(n => n.hours) : [group.average];
+      const width = monthly ? 5 : 25;
+      return values.map((value, j) => {
+        const x = i * 40 + 20 + (j - (values.length - 1) / 2) * 6;
+        const y = 160 - value / maximum * 140;
+        const color = i === state.weekday ? '#ff9828' : '#80501c';
+        return value > 0 ? `<rect x="${x - width / 2}" y="${y}" width="${width}" height="${160 - y}" rx="2" fill="${color}"/>` : `<circle cx="${x}" cy="160" r="2" fill="${color}"/>`;
+      }).join('');
+    }).join('');
+    const history = selected.history;
+    const historyMax = Math.ceil(Math.max(1, ...history.map(b => b.average)) * 1.15);
+    const label = key => state.period === '1Y' ? new Date(`${key}T00:00:00Z`).toLocaleDateString('en-GB', {month:'short', year:'2-digit', timeZone:'UTC'}) : key;
+    const step = Math.ceil(history.length / 5);
+    return `<p class="weekday-caption">${monthly ? 'Nightly shortfall' : 'Average shortfall per recorded night'} · hours</p><div class="weekday-plot"><svg class="chart weekday-overview" viewBox="0 0 280 170" role="img" aria-label="Sleep shortfall by weekday. Select a weekday below for details."><line x1="0" x2="280" y1="20" y2="20" class="axis-grid"/><line x1="0" x2="280" y1="90" y2="90" class="axis-grid"/><line x1="0" x2="280" y1="160" y2="160" class="axis-grid"/>${bars}${groups.map((g, i) => `<rect data-weekday="${i}" x="${i * 40}" y="0" width="40" height="170" fill="transparent"/>`).join('')}</svg><div class="weekday-axis" aria-hidden="true"><span>${maximum}h</span><span>${maximum / 2}h</span><span>0h</span></div></div><div class="weekday-buttons" role="group" aria-label="Select weekday">${groups.map((g, i) => `<button data-weekday="${i}" aria-pressed="${i === state.weekday}" aria-label="${names[i]} nights, ${g.nights.length} recorded">${names[i].slice(0, 3)}<small>${g.nights.length}</small></button>`).join('')}</div><div class="weekday-summary"><strong>${names[state.weekday]} nights</strong><span>${num(selected.average)}h average shortfall · ${selected.nights.length} recorded nights</span></div>${monthly ? `<div class="weekday-details">${selected.nights.map(n => `<span>${new Date(n.timestamp).toLocaleDateString('en-GB', {day:'numeric', month:'short', timeZone:'UTC'})}<strong>${num(n.hours)}h</strong></span>`).join('')}</div>` : `<p class="weekday-caption">${state.period === '1Y' ? 'Monthly' : 'Yearly'} averages</p><div class="weekday-history" role="list" aria-label="${names[state.weekday]} night history">${history.map((b, i) => `<div role="listitem" aria-label="${label(b.key)}: ${num(b.average)} hours average, ${b.count} recorded nights"><span>${num(b.average)}</span><i style="height:${Math.max(2, b.average / historyMax * 95)}px"></i><small>${i % step === 0 ? label(b.key) : '&nbsp;'}</small></div>`).join('')}</div>`}<p class="weekday-caption"><span class="weekday-key">●</span> Recorded</p><p class="weekday-caption">Nights are labelled by their evening: Monday night includes Tuesday morning. ${monthly ? 'Bars run oldest to newest within each weekday.' : 'Averages include recorded nights with no shortfall.'}</p>`;
+  }
   function trends() {
     const s = summary(state.period);
     const balance = s.targetRunningBalance;
@@ -124,7 +146,7 @@
     const targetColor = s.targetComplianceRate >= .85 ? '#2bd158' : s.targetComplianceRate >= .6 ? '#ffe100' : '#ff9828';
     return `<div class="screen trends-screen"><h1 class="page-title">Trends</h1><div class="period-selector" role="group" aria-label="Trend time period">${data.periods.map(p => `<button data-period="${p}" class="${p === state.period ? 'selected' : ''}" aria-pressed="${p === state.period}">${p}</button>`).join('')}</div>
       <div class="summary-grid">${metric('Average Sleep', `${num(s.averageSleepHours)} hours`, 'moon', periodNames[state.period])}${metric('Target Rate', `${Math.round(s.targetComplianceRate * 100)}%`, 'target', `${hoursLabel(state.minimum)}+ hours`, 'target-icon', targetColor)}</div>
-      <section class="card chart-card" id="sleep-debt" tabindex="-1"><h2 class="section-heading">Sleep Debt</h2><p class="debt-summary" style="color:${s.totalSleepDebt > 2 ? debtColor(s.totalSleepDebt) : '#949497'}">${balanceText} · ${num(Math.abs(s.averageNightlyBalance))}h/night</p>${debtChart(s)}</section>
+      <section class="card chart-card" id="sleep-debt" tabindex="-1"><h2 class="section-heading">Sleep Debt</h2><p class="debt-summary" style="color:${s.totalSleepDebt > 2 ? debtColor(s.totalSleepDebt) : '#949497'}">${balanceText} · ${num(Math.abs(s.averageNightlyBalance))}h/night</p>${!['1D', '1W'].includes(state.period) ? `<div class="debt-grouping" role="group" aria-label="Debt grouping"><button data-grouping="overTime" aria-pressed="${state.debtGrouping === 'overTime'}">By time</button><button data-grouping="weekday" aria-pressed="${state.debtGrouping === 'weekday'}">By weekday</button></div>` : ''}${!['1D', '1W'].includes(state.period) && state.debtGrouping === 'weekday' ? weekdayChart(s) : debtChart(s)}</section>
       <section class="card chart-card" id="sleep-duration" tabindex="-1"><div class="chart-heading"><h2 class="section-heading">Sleep Duration</h2><span class="trend-label" style="color:${trendColor}">${trendSymbol} ${s.durationTrend}</span></div>${['1D', '1W'].includes(state.period) ? timelineChart(s) : durationChart(s)}</section>
       ${disclosure(`<div class="metric-grid">${smallMetric('Avg Bedtime', clock(s.averageBedtimeMinutes), 'bed', '#5e5ce6')}${smallMetric('Avg Wake', clock(s.averageWakeMinutes), 'sunrise', '#ff9f0a')}${smallMetric('Deep Sleep', `${Math.round(s.averageDeepSleepMinutes)} min`, 'waveform', stageColors.deep)}${smallMetric('REM Sleep', `${Math.round(s.averageREMSleepMinutes)} min`, 'eye', stageColors.rem)}${smallMetric('Efficiency', `${Math.round(s.averageEfficiency * 100)}%`, 'gauge', '#0a84ff')}${smallMetric('Records', `${s.nightCount.toLocaleString()} nights`, 'calendar', '#8e8e93')}</div>`)}
     </div>`;
@@ -136,7 +158,7 @@
     return `<div class="screen settings-screen"><h1 class="page-title">Settings</h1>
       <section class="settings-section"><h2>${icon('target')}Sleep Goals</h2><div class="settings-group">${slider('target', 'Target Sleep', state.target, 6, 10, '#d72beb')}${slider('minimum', 'Minimum Acceptable', state.minimum, 5, 9, '#ff9828')}</div><p class="settings-note">Adjust the goals to see how sleep debt and target nights change throughout this demo.</p></section>
       <section class="settings-section"><h2>${icon('watch')}Data Source</h2><div class="settings-group"><div class="settings-row"><span class="health-label">${icon('heart')}Apple Health</span><span class="demo-badge">Demo data</span></div><button class="settings-row settings-action" data-info="health">About This Demo<span class="row-arrow" aria-hidden="true">›</span></button><button class="settings-row settings-action" data-info="tracking">How Sleep Data Works<span class="row-arrow" aria-hidden="true">›</span></button></div><p class="settings-note demo-note">All records in this browser demo are fictional. It does not connect to Apple Health, access your health records, or save your settings.</p></section>
-      <section class="settings-section"><h2>${icon('info')}About</h2><div class="settings-group"><div class="settings-row"><span>Version</span><span class="secondary version">1.0 · Web demo</span></div><button class="settings-row settings-action" data-info="privacy">Privacy Policy<span class="row-arrow" aria-hidden="true">›</span></button><button class="settings-row settings-action" data-info="score">How Sleep Score Is Calculated<span class="row-arrow" aria-hidden="true">›</span></button><button class="settings-row settings-action" data-info="debt">Understanding Sleep Debt<span class="row-arrow" aria-hidden="true">›</span></button><a class="settings-row settings-action" href="https://www.sleepfoundation.org" target="_blank" rel="noopener">Sleep Foundation Resources<span class="row-arrow" aria-hidden="true">↗</span></a></div><p class="settings-note">Somnus provides educational wellness estimates. Scores and sleep debt are not medical measurements or advice.</p></section><button class="reset-button" data-reset>Reset demo goals</button>
+      <section class="settings-section"><h2>${icon('info')}About</h2><div class="settings-group"><div class="settings-row"><span>Version</span><span class="secondary version">1.1.0 · Web demo</span></div><button class="settings-row settings-action" data-info="privacy">Privacy Policy<span class="row-arrow" aria-hidden="true">›</span></button><button class="settings-row settings-action" data-info="score">How Sleep Score Is Calculated<span class="row-arrow" aria-hidden="true">›</span></button><button class="settings-row settings-action" data-info="debt">Understanding Sleep Debt<span class="row-arrow" aria-hidden="true">›</span></button><a class="settings-row settings-action" href="https://www.sleepfoundation.org" target="_blank" rel="noopener">Sleep Foundation Resources<span class="row-arrow" aria-hidden="true">↗</span></a></div><p class="settings-note">Somnus provides educational wellness estimates. Scores and sleep debt are not medical measurements or advice.</p></section><button class="reset-button" data-reset>Reset demo goals</button>
     </div>`;
   }
 
@@ -196,6 +218,15 @@
       state.views.trends.scrollTop = 0;
       render();
       content.querySelector(`[data-period="${state.period}"]`).focus({ preventScroll: true });
+    }
+    const grouping = event.target.closest('[data-grouping]');
+    const weekday = event.target.closest('[data-weekday]');
+    if (grouping || weekday) {
+      rememberView();
+      if (grouping) state.debtGrouping = grouping.dataset.grouping;
+      if (weekday) state.weekday = Number(weekday.dataset.weekday);
+      render();
+      content.querySelector(grouping ? `[data-grouping="${state.debtGrouping}"]` : `button[data-weekday="${state.weekday}"]`).focus({preventScroll: true});
     }
     const deepLink = event.target.closest('[data-deep-link]');
     if (deepLink) {

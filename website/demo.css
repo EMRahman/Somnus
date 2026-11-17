@@ -998,3 +998,25 @@ dialog::backdrop {
 .chart-card:focus {
   outline: none;
 }
+
+.debt-grouping { display:flex; background:#333336; border-radius:8px; padding:2px; margin:14px 0; }
+.debt-grouping button { flex:1; border:0; border-radius:6px; background:transparent; color:#aaa; padding:7px; }
+.debt-grouping button[aria-pressed="true"] { background:#66666a; color:white; }
+.weekday-caption { color:#a7a7aa; font-size:11px; line-height:1.4; margin:12px 0; }
+.weekday-plot { display:flex; align-items:stretch; }
+.weekday-overview { width:calc(100% - 28px); height:170px; }
+.weekday-overview [data-weekday] { cursor:pointer; }
+.weekday-axis { width:28px; display:flex; flex-direction:column; justify-content:space-between; padding:14px 0 8px 3px; color:#a7a7aa; font-size:10px; }
+.weekday-key { color:#ff9828; }
+.weekday-buttons { display:flex; margin-right:28px; }
+.weekday-buttons button { flex:1; min-width:0; min-height:44px; background:none; border:0; color:#aaa; font-size:11px; padding:2px; }
+.weekday-buttons button[aria-pressed="true"] { color:white; font-weight:bold; }
+.weekday-buttons small, .weekday-summary span, .weekday-details strong { display:block; }
+.weekday-summary { font-size:13px; margin:12px 0; }
+.weekday-summary span { color:#aaa; font-size:11px; margin-top:4px; }
+.weekday-details { display:flex; flex-wrap:wrap; gap:12px; font-size:10px; color:#aaa; }
+.weekday-details strong { color:white; margin-top:3px; }
+.weekday-history { display:flex; align-items:end; height:130px; gap:3px; }
+.weekday-history div { flex:1; min-width:0; text-align:center; font-size:9px; color:#aaa; }
+.weekday-history i { display:block; background:#ff9828; border-radius:3px; margin:3px auto; width:70%; }
+.weekday-history small { display:block; white-space:nowrap; font-size:8px; position:relative; left:50%; transform:translateX(-50%); }

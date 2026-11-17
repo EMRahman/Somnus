@@ -79,6 +79,22 @@ async function main() {
     }
     assert.equal(chartShapes.size, data.periods.length, 'Period buttons must render distinct charts');
 
+    // The 1.1 grouping is offered only for month and longer and tracks selection.
+    await app.getByRole('button', { name: '1W', exact: true }).click();
+    assert.equal(await app.locator('[data-grouping]').count(), 0);
+    for (const period of ['1M', '1Y', '5Y', '10Y']) {
+      await app.getByRole('button', { name: period, exact: true }).click();
+      await app.getByRole('button', { name: 'By weekday' }).click();
+      await app.getByRole('button', { name: /Tuesday nights/ }).click();
+      const group = data.weekdayDebt(data.summarize(period).records, 8, period)[1];
+      assert.match(await app.locator('.weekday-summary').innerText(), new RegExp(`Tuesday nights.*${group.average.toFixed(1)}h`, 's'));
+      assert.equal(await app.locator('button[data-weekday="1"]').getAttribute('aria-pressed'), 'true');
+      assert.ok(!(await app.locator('#sleep-debt').innerHTML()).match(/NaN|undefined/));
+      if (period === '1M') assert.equal(await app.locator('.weekday-details span').count(), group.nights.length);
+      else assert.equal(await app.locator('.weekday-history [role="listitem"]').count(), group.history.length);
+      await app.getByRole('button', { name: 'By time' }).click();
+    }
+
     // Keyboard-accessible settings must survive tab switches and affect the metrics.
     await app.locator('[data-tab="settings"]').click();
     const sliders = app.locator('input[type="range"]');
