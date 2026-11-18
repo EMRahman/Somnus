@@ -16,7 +16,7 @@ A native iOS app that reads Apple Watch sleep data and turns it into a running v
 [![Swift Charts](https://img.shields.io/badge/Swift%20Charts-1B1926?style=flat-square&logo=apple&logoColor=2BD466)](https://developer.apple.com/documentation/charts)
 
 [![App Store](https://img.shields.io/badge/App%20Store-Available-2BD466?style=flat-square&logo=appstore&logoColor=white&labelColor=0B0B12)](https://apps.apple.com/app/id6812648966)
-[![Version](https://img.shields.io/badge/Version-1.1.0-8C77EF?style=flat-square&labelColor=0B0B12)](project.yml)
+[![Version](https://img.shields.io/badge/Version-1.2.0-8C77EF?style=flat-square&labelColor=0B0B12)](project.yml)
 [![License](https://img.shields.io/github/license/EMRahman/Somnus?style=flat-square&label=License&labelColor=0B0B12&color=2BD466)](LICENSE)
 [![Website](https://img.shields.io/github/actions/workflow/status/EMRahman/Somnus/pages.yml?style=flat-square&label=Website&logo=githubpages&logoColor=white&labelColor=0B0B12&color=2BD466)](https://emrahman.github.io/Somnus/)
 [![Codebase](https://img.shields.io/github/languages/top/EMRahman/Somnus?style=flat-square&label=Swift%20share&logo=swift&logoColor=white&labelColor=0B0B12&color=F05138)](https://github.com/EMRahman/Somnus)
@@ -34,7 +34,7 @@ A native iOS app that reads Apple Watch sleep data and turns it into a running v
 
 | Dashboard | Weekly debt | Monthly debt |
 |:---:|:---:|:---:|
-| <img src="website/assets/somnus-dashboard.png" alt="Somnus dashboard showing a 94 Excellent sleep score alongside 4.6 hours of accumulated debt" width="260"> | <img src="website/assets/somnus-debt-week.png" alt="Weekly Trends screen with nightly shortfall bars and a cumulative debt line reaching 4.5 hours" width="260"> | <img src="website/assets/somnus-debt-month.png" alt="Monthly Trends screen showing 18 hours behind the sleep goal" width="260"> |
+| <img src="website/assets/somnus-dashboard.png" alt="Somnus dashboard showing a 94 Excellent sleep score alongside 4.6 hours of accumulated debt" width="260"> | <img src="website/assets/somnus-debt-week.png" alt="Weekly Trends screen with nightly shortfall bars and a cumulative debt line reaching 4.5 hours" width="260"> | <img src="website/assets/somnus-debt-month.png" alt="Monthly Trends screen showing 14.5 hours behind the sleep goal" width="260"> |
 | A strong night and a growing deficit, side by side | Each night's shortfall, plus the running total | The same view, scaled out to a month |
 
 | Weekday debt (1M) | Weekday debt (1Y) |
@@ -73,13 +73,13 @@ The buildless demo lives in [`website/demo.html`](website/demo.html); see [`webs
 
 ### Sleep Debt Trends
 
-The primary Trends chart pairs each period's shortfall with a running cumulative-debt line. It also shows your net balance—whether you are behind or ahead of your goal—and your average nightly shortfall, making both the current debt and its direction visible.
+The primary Trends chart pairs each period's shortfall with a running cumulative-debt line. Since 1.2.0, bars are colour-coded by shortfall per night—yellow under 0.5h, orange 0.5–1h, red 1h+—with week, month, and year bars rated by their average night, and the cumulative line changes colour with the running average. It also shows your net balance—whether you are behind or ahead of your goal—and your average nightly shortfall, making both the current debt and its direction visible.
 
 Switch between six time horizons—Daily, Weekly, Monthly, Yearly, 5 Years, and 10 Years—to see whether debt is an isolated dip, a recurring pattern, or a deficit that has compounded over months or years. The same debt calculation is reused throughout the app, deduplicating fragmented sleep sessions and excluding nights with no recorded sleep so missing data does not become phantom debt.
 
 #### Weekday Breakdown (New in 1.1.0)
 
-For **1M and longer**, switch **By time / By weekday** inside Sleep Debt to spot recurring bad nights. The month view groups individual nights Monday–Sunday, oldest first; longer ranges compare average shortfall per recorded night. Select a weekday for its recording count and dated monthly values, monthly averages (1Y), or yearly averages (5Y/10Y). Night labels refer to their evening, so Monday night includes Tuesday morning. Missing nights remain distinct from recorded nights with zero shortfall.
+For **1M and longer**, switch **By time / By weekday** inside Sleep Debt to spot recurring bad nights. The month view groups individual nights Monday–Sunday, oldest first; longer ranges compare average shortfall per recorded night. Select a weekday for its recording count and dated monthly values, monthly averages (1Y), or yearly averages (5Y/10Y). Night labels refer to their evening, so Monday night includes Tuesday morning. Missing nights remain distinct from recorded nights with zero shortfall. Nights, weekday averages, and drill-downs use the same severity colours, and the selected weekday is highlighted.
 
 ### Supporting Sleep Charts
 
