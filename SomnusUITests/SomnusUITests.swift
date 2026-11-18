@@ -79,16 +79,34 @@ final class SomnusUITests: XCTestCase {
         XCTAssertFalse(app.buttons["By weekday"].exists)
     }
 
-    /// Captures App Store screenshots of the weekday sleep-debt views from the DEBUG-only
-    /// synthetic fixture. Skipped unless run with TEST_RUNNER_SOMNUS_CAPTURE_SCREENSHOTS=1.
-    func testCaptureWeekdayDebtScreenshots() throws {
+    /// Captures the full App Store screenshot set (01–05) plus the monthly By time view used by
+    /// the marketing website, all from the DEBUG-only synthetic fixture. Skipped unless run with
+    /// TEST_RUNNER_SOMNUS_CAPTURE_SCREENSHOTS=1.
+    func testCaptureAppStoreScreenshots() throws {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["SOMNUS_CAPTURE_SCREENSHOTS"] == "1")
-        app.terminate()
-        app.launchArguments += [
-            "-screenshotMode", "-screenshotDestination=monthly-duration", "-screenshotWeekdayDebt"
-        ]
-        app.launch()
 
+        relaunchForScreenshot(destination: "dashboard")
+        // iPad presents tabs outside `tabBars`, so match the tab button anywhere.
+        XCTAssertTrue(app.buttons["Dashboard"].firstMatch.waitForExistence(timeout: 5))
+        sleep(2)
+        attachScreenshot("01-dashboard")
+
+        relaunchForScreenshot(destination: "debt")
+        XCTAssertTrue(app.staticTexts["Cumulative debt"].waitForExistence(timeout: 5))
+        sleep(1)
+        attachScreenshot("02-sleep-debt")
+
+        relaunchForScreenshot(destination: "duration")
+        XCTAssertTrue(app.staticTexts["Sleep Duration"].waitForExistence(timeout: 5))
+        sleep(2)
+        attachScreenshot("03-sleep-duration")
+
+        relaunchForScreenshot(destination: "monthly-duration")
+        XCTAssertTrue(app.staticTexts["Cumulative debt"].waitForExistence(timeout: 5))
+        sleep(1)
+        attachScreenshot("web-debt-month")
+
+        relaunchForScreenshot(destination: "monthly-duration", extraArguments: ["-screenshotWeekdayDebt"])
         let monday = app.buttons["weekday-debt-2"]
         XCTAssertTrue(monday.waitForExistence(timeout: 5))
         scrollSleepDebtIntoView()
@@ -120,6 +138,13 @@ final class SomnusUITests: XCTestCase {
             start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.3)
         }
         sleep(1)
+    }
+
+    private func relaunchForScreenshot(destination: String, extraArguments: [String] = []) {
+        app.terminate()
+        app.launchArguments = ["-hasCompletedOnboarding", "YES", "-screenshotMode",
+                               "-screenshotDestination=\(destination)"] + extraArguments
+        app.launch()
     }
 
     private func attachScreenshot(_ name: String) {
