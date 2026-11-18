@@ -34,23 +34,29 @@ struct WeekdayDebtChart: View {
             // selection by touch and VoiceOver without targeting a narrow bar.
             HStack(spacing: 0) {
                 ForEach(summaries) { summary in
+                    let isSelected = selectedWeekday == summary.weekday
                     Button {
                         selectedWeekday = summary.weekday
                     } label: {
                         VStack(spacing: 3) {
                             Text(summary.label)
-                                .fontWeight(selectedWeekday == summary.weekday ? .bold : .regular)
+                                .fontWeight(isSelected ? .bold : .medium)
                             Text(summary.recordedCount == 0 ? "—" : "\(summary.recordedCount)")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(isSelected ? .primary : .secondary)
                         }
                         .font(.caption2)
                         .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(isSelected ? Color.primary.opacity(0.12) : Color.clear)
+                                .padding(.horizontal, 2)
+                        )
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(selectedWeekday == summary.weekday ? Color.primary : .secondary)
+                    .foregroundStyle(isSelected ? Color.primary : .secondary)
                     .accessibilityLabel("\(summary.fullLabel) nights, \(summary.recordedCount) recorded")
-                    .accessibilityAddTraits(selectedWeekday == summary.weekday ? .isSelected : [])
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
                     .accessibilityIdentifier("weekday-debt-\(summary.weekday)")
                 }
             }
@@ -68,8 +74,12 @@ struct WeekdayDebtChart: View {
             }
 
             HStack(spacing: 12) {
-                Label("Recorded", systemImage: "circle.fill")
-                    .foregroundStyle(Color.chartBarBelow)
+                Label("<0.5h", systemImage: "circle.fill")
+                    .foregroundStyle(Color.shortfallLow)
+                Label("0.5–1h", systemImage: "circle.fill")
+                    .foregroundStyle(Color.shortfallModerate)
+                Label("1h+", systemImage: "circle.fill")
+                    .foregroundStyle(Color.shortfallHigh)
                 Label("No data", systemImage: "xmark")
                     .foregroundStyle(.secondary)
             }
@@ -83,13 +93,26 @@ struct WeekdayDebtChart: View {
 
     private var overviewChart: some View {
         Chart {
+            if let selectedIndex = summaries.firstIndex(where: { $0.weekday == selectedWeekday }) {
+                let x = Double(selectedIndex)
+                RectangleMark(
+                    xStart: .value("Weekday", x - 0.42),
+                    xEnd: .value("Weekday", x + 0.42),
+                    yStart: .value("Shortfall", 0.0),
+                    yEnd: .value("Shortfall", yMaximum)
+                )
+                .foregroundStyle(Color.primary.opacity(0.08))
+                .cornerRadius(6)
+                .accessibilityHidden(true)
+            }
+
             ForEach(Array(summaries.enumerated()), id: \.element.id) { index, summary in
                 if isMonthly {
                     ForEach(summary.nights) { night in
                         let x = Double(index) + (Double(night.occurrence) - Double(summary.nights.count - 1) / 2) * 0.15
                         if let hours = night.hours, hours > 0 {
                             BarMark(x: .value("Weekday", x), y: .value("Shortfall", hours), width: .fixed(5))
-                                .foregroundStyle(Color.chartBarBelow.opacity(summary.weekday == selectedWeekday ? 1 : 0.5))
+                                .foregroundStyle(Color.shortfallColor(hours: hours))
                                 .cornerRadius(2)
                                 .accessibilityLabel(night.date.formatted(.dateTime.weekday(.wide).month().day()))
                                 .accessibilityValue(String(format: "%.1f hours shortfall", hours))
@@ -97,7 +120,7 @@ struct WeekdayDebtChart: View {
                             PointMark(x: .value("Weekday", x), y: .value("Shortfall", 0))
                                 .symbol(night.hours == nil ? .cross : .circle)
                                 .symbolSize(night.hours == nil ? 18 : 12)
-                                .foregroundStyle(night.hours == nil ? Color.secondary : Color.chartBarBelow)
+                                .foregroundStyle(night.hours == nil ? Color.secondary : Color.shortfallColor(hours: 0))
                                 .accessibilityLabel(night.date.formatted(.dateTime.weekday(.wide).month().day()))
                                 .accessibilityValue(night.hours == nil ? "No data" : "No shortfall")
                         }
@@ -105,10 +128,10 @@ struct WeekdayDebtChart: View {
                 } else if let hours = summary.averageHours, hours > 0 {
                     averageBar(summary, index: index, hours: hours)
                 } else {
-                    PointMark(x: .value("Weekday", Double(index)), y: .value("Average shortfall", 0))
+                    PointMark(x: .value("Weekday", Double(index)), y: .value("Shortfall", 0))
                         .symbol(summary.averageHours == nil ? .cross : .circle)
                         .symbolSize(20)
-                        .foregroundStyle(summary.averageHours == nil ? Color.secondary : Color.chartBarBelow)
+                        .foregroundStyle(summary.averageHours == nil ? Color.secondary : Color.shortfallColor(hours: 0))
                         .accessibilityLabel("\(summary.fullLabel) nights")
                         .accessibilityValue(summary.averageHours == nil ? "No data" : "No shortfall")
                 }
@@ -138,7 +161,8 @@ struct WeekdayDebtChart: View {
     // the annotation renders. Give the bar explicit edges, anchored at zero, instead.
     private func averageBar(_ summary: WeekdayDebtSummary, index: Int, hours: Double) -> some ChartContent {
         let x = Double(index)
-        let color: Color = Color.chartBarBelow.opacity(summary.weekday == selectedWeekday ? 1.0 : 0.5)
+        let isSelected = summary.weekday == selectedWeekday
+        let color: Color = Color.shortfallColor(hours: hours)
         let label: String = String(format: "%.1f", hours)
         let accessibilityLabel: String = "\(summary.fullLabel) nights"
         let accessibilityValue: String = String(
@@ -146,14 +170,17 @@ struct WeekdayDebtChart: View {
         )
         let xStart: PlottableValue<Double> = .value("Weekday", x - 0.325)
         let xEnd: PlottableValue<Double> = .value("Weekday", x + 0.325)
-        let yStart: PlottableValue<Double> = .value("Average shortfall", 0.0)
-        let yEnd: PlottableValue<Double> = .value("Average shortfall", hours)
+        let yStart: PlottableValue<Double> = .value("Shortfall", 0.0)
+        let yEnd: PlottableValue<Double> = .value("Shortfall", hours)
         let bar = RectangleMark(xStart: xStart, xEnd: xEnd, yStart: yStart, yEnd: yEnd)
         return bar
             .foregroundStyle(color)
             .cornerRadius(4)
             .annotation(position: .top) {
-                Text(label).font(.caption2)
+                Text(label)
+                    .font(.caption2)
+                    .fontWeight(isSelected ? .bold : .regular)
+                    .foregroundStyle(isSelected ? Color.primary : Color.secondary)
             }
             .accessibilityLabel(accessibilityLabel)
             .accessibilityValue(accessibilityValue)
@@ -180,7 +207,8 @@ struct WeekdayDebtChart: View {
                 String(format: "%.1fh average shortfall · %d recorded nights", $0, summary.recordedCount)
             } ?? "No recorded nights in this period")
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .fontWeight(summary.severity == .normal ? .regular : .medium)
+            .foregroundStyle(summary.severity == .normal ? Color.secondary : Color.shortfallColor(for: summary.severity))
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("weekday-debt-summary")
@@ -203,6 +231,8 @@ struct WeekdayDebtChart: View {
             Text(night.date, format: .dateTime.day().month(.abbreviated))
                 .foregroundStyle(.secondary)
             Text(night.hours.map { String(format: "%.1fh", $0) } ?? "No data")
+                .fontWeight(night.severity == .normal ? .regular : .medium)
+                .foregroundStyle(night.hours == nil ? Color.secondary : (night.severity == .normal ? Color.primary : Color.shortfallColor(for: night.severity)))
         }
         .font(.caption2)
         .accessibilityElement(children: .combine)
@@ -215,14 +245,14 @@ struct WeekdayDebtChart: View {
             Chart(detailBuckets) { bucket in
                 if let hours = bucket.hours, hours > 0 {
                     BarMark(x: .value("Period", bucket.date, unit: detailComponent), y: .value("Average shortfall", hours))
-                        .foregroundStyle(Color.chartBarBelow)
+                        .foregroundStyle(Color.shortfallColor(hours: hours))
                         .cornerRadius(3)
                         .accessibilityLabel(bucket.date.formatted(period == .yearly ? .dateTime.month(.wide).year() : .dateTime.year()))
                         .accessibilityValue(String(format: "%.1f hours average, %d recorded nights", hours, bucket.recordedCount))
                 } else {
                     PointMark(x: .value("Period", bucket.date, unit: detailComponent), y: .value("Average shortfall", 0))
                         .symbol(bucket.hours == nil ? .cross : .circle)
-                        .foregroundStyle(bucket.hours == nil ? Color.secondary : Color.chartBarBelow)
+                        .foregroundStyle(bucket.hours == nil ? Color.secondary : Color.shortfallColor(hours: 0))
                         .accessibilityLabel(bucket.date.formatted(.dateTime.month().year()))
                         .accessibilityValue(bucket.hours == nil ? "No data" : "No shortfall")
                 }

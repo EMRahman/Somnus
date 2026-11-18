@@ -428,6 +428,14 @@ struct SleepAnalysisEngine {
         return .normal
     }
 
+    /// Nightly or weekday-average shortfall severity: under 0.5h is mild (.normal),
+    /// 0.5–1.0h is moderate (.concerning), and 1.0h or more is high (.critical).
+    static func shortfallSeverity(hours: Double) -> StatSeverity {
+        if hours >= 1.0 { return .critical }
+        if hours >= 0.5 { return .concerning }
+        return .normal
+    }
+
     /// Detects the handful of sleep patterns not already visible as a chart, score, or metric
     /// card elsewhere in the app: weekend/social-jet-lag gap, frequent late bedtimes, and which
     /// specific stage (deep or REM) is running low. Requires at least 5 tracked nights, same

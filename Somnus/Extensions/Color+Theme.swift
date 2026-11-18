@@ -37,6 +37,24 @@ extension Color {
 
     static let chartBar = Color(red: 0.45, green: 0.38, blue: 0.82)
     static let chartBarBelow = Color.orange.opacity(0.8)
+
+    // MARK: - Shortfall Severity Colors
+
+    static let shortfallLow = Color(red: 0.92, green: 0.72, blue: 0.22)
+    static let shortfallModerate = Color.statConcerning
+    static let shortfallHigh = Color.statCritical
+
+    static func shortfallColor(for severity: StatSeverity) -> Color {
+        switch severity {
+        case .normal: return .shortfallLow
+        case .concerning: return .shortfallModerate
+        case .critical: return .shortfallHigh
+        }
+    }
+
+    static func shortfallColor(hours: Double) -> Color {
+        shortfallColor(for: SleepAnalysisEngine.shortfallSeverity(hours: hours))
+    }
 }
 
 // MARK: - Color for SleepStage

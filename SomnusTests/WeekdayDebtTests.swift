@@ -107,4 +107,19 @@ final class WeekdayDebtTests: XCTestCase {
         XCTAssertEqual(buckets[2].hours, 2)
         XCTAssertEqual(buckets[2].recordedCount, 1)
     }
+
+    func testShortfallSeverityRanksLowModerateAndHighWeekdayDebt() {
+        let result = summaries([
+            record(date(2026, 11, 3), hours: 6.5), // Monday night: 1.5h shortfall (.critical)
+            record(date(2026, 11, 4), hours: 7.3), // Tuesday night: 0.7h shortfall (.concerning)
+            record(date(2026, 11, 5), hours: 7.7)  // Wednesday night: 0.3h shortfall (.normal)
+        ], range: date(2026, 11, 1)..<date(2026, 11, 8))
+        XCTAssertEqual(result[0].severity, .critical)
+        XCTAssertEqual(result[0].nights[0].severity, .critical)
+        XCTAssertEqual(result[1].severity, .concerning)
+        XCTAssertEqual(result[1].nights[0].severity, .concerning)
+        XCTAssertEqual(result[2].severity, .normal)
+        XCTAssertEqual(result[2].nights[0].severity, .normal)
+        XCTAssertEqual(result[3].severity, .normal) // Unrecorded weekday defaults to .normal
+    }
 }
