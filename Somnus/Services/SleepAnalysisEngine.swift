@@ -250,7 +250,9 @@ struct SleepAnalysisEngine {
             calendar.dateInterval(of: component, for: night.date)?.start ?? night.date
         }
         .map { start, items in
-            SleepChartDataPoint(date: start, hours: items.reduce(0) { $0 + $1.debt }, label: "")
+            SleepChartDataPoint(
+                date: start, hours: items.reduce(0) { $0 + $1.debt }, label: "", nightCount: items.count
+            )
         }
         .sorted { $0.date < $1.date }
     }

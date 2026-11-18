@@ -327,14 +327,14 @@ button svg {
 .legend .line-key {
   height: 3px;
   width: 14px;
-  background: var(--chart);
+  background: #ff9828;
   border-radius: 3px;
 }
 
 .legend .bar-key {
   height: 9px;
   width: 9px;
-  background: #cc812e;
+  background: #ff9828;
   border-radius: 2px;
 }
 
