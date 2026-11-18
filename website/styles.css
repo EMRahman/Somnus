@@ -522,7 +522,7 @@ h1 {
   object-position: top;
 }
 
-.story-card:nth-child(2) {
+.story-grid > .story-card:nth-child(2) {
   margin-top: 48px;
 }
 
@@ -555,6 +555,60 @@ h1 {
   margin: 0;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.weekday-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(32px, 5vw, 64px);
+  align-items: center;
+}
+
+.weekday-copy h2 {
+  margin-bottom: 18px;
+  font-size: clamp(2.2rem, 4.2vw, 3.6rem);
+  font-weight: 770;
+}
+
+.weekday-copy > p:not(.eyebrow) {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 1.06rem;
+}
+
+.weekday-copy strong {
+  color: var(--ink);
+}
+
+.weekday-points {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.weekday-points li {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.weekday-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+}
+
+.weekday-cards .story-number {
+  width: auto;
+  min-width: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
 }
 
 .formula {
@@ -949,6 +1003,7 @@ h1 {
   .formula,
   .privacy-strip,
   .spec-strip,
+  .weekday-layout,
   .content-layout {
     grid-template-columns: 1fr;
   }
@@ -957,11 +1012,11 @@ h1 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .story-card:nth-child(2) {
+  .story-grid > .story-card:nth-child(2) {
     margin-top: 0;
   }
 
-  .story-card:last-child {
+  .story-grid > .story-card:last-child {
     grid-column: 1 / -1;
     width: calc(50% - 12px);
     margin-inline: auto;
@@ -1028,11 +1083,12 @@ h1 {
   }
 
   .contrast-grid,
-  .story-grid {
+  .story-grid,
+  .weekday-cards {
     grid-template-columns: 1fr;
   }
 
-  .story-card:last-child {
+  .story-grid > .story-card:last-child {
     grid-column: auto;
     width: 100%;
   }
