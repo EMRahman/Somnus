@@ -16,6 +16,7 @@ A native iOS app that reads Apple Watch sleep data and turns it into a running v
 [![Swift Charts](https://img.shields.io/badge/Swift%20Charts-1B1926?style=flat-square&logo=apple&logoColor=2BD466)](https://developer.apple.com/documentation/charts)
 
 [![App Store](https://img.shields.io/badge/App%20Store-Available-2BD466?style=flat-square&logo=appstore&logoColor=white&labelColor=0B0B12)](https://apps.apple.com/app/id6812648966)
+[![Version](https://img.shields.io/badge/Version-1.1.0-8C77EF?style=flat-square&labelColor=0B0B12)](project.yml)
 [![License](https://img.shields.io/github/license/EMRahman/Somnus?style=flat-square&label=License&labelColor=0B0B12&color=2BD466)](LICENSE)
 [![Website](https://img.shields.io/github/actions/workflow/status/EMRahman/Somnus/pages.yml?style=flat-square&label=Website&logo=githubpages&logoColor=white&labelColor=0B0B12&color=2BD466)](https://emrahman.github.io/Somnus/)
 [![Codebase](https://img.shields.io/github/languages/top/EMRahman/Somnus?style=flat-square&label=Swift%20share&logo=swift&logoColor=white&labelColor=0B0B12&color=F05138)](https://github.com/EMRahman/Somnus)
@@ -36,6 +37,11 @@ A native iOS app that reads Apple Watch sleep data and turns it into a running v
 | <img src="website/assets/somnus-dashboard.png" alt="Somnus dashboard showing a 94 Excellent sleep score alongside 4.6 hours of accumulated debt" width="260"> | <img src="website/assets/somnus-debt-week.png" alt="Weekly Trends screen with nightly shortfall bars and a cumulative debt line reaching 4.5 hours" width="260"> | <img src="website/assets/somnus-debt-month.png" alt="Monthly Trends screen showing 18 hours behind the sleep goal" width="260"> |
 | A strong night and a growing deficit, side by side | Each night's shortfall, plus the running total | The same view, scaled out to a month |
 
+| Weekday debt (1M) | Weekday debt (1Y) |
+|:---:|:---:|
+| <img src="website/assets/somnus-weekday-month.png" alt="Monthly Trends screen switched to By weekday, showing grouped Monday through Sunday shortfall bars and dated Monday nights" width="260"> | <img src="website/assets/somnus-weekday-year.png" alt="Yearly Trends screen switched to By weekday, showing average shortfall per recorded night across weekdays and monthly averages for Monday nights" width="260"> |
+| Individual nights grouped by weekday over a month (1.1.0) | Yearly weekday averages with monthly drill-down (1.1.0) |
+
 <sub>Screenshots use deterministic sample data.</sub>
 
 </div>
@@ -54,7 +60,7 @@ Somnus is built around sleep debt: the gap between the sleep you need and the sl
 
 ### Interactive Browser Demo
 
-The marketing site's **Try in your browser** section embeds an interactive iPhone-style replica of the app. Explore Dashboard, Trends, and Settings using a deterministic fictional sleep history, including the 1D, 1W, 1M, 1Y, 5Y, and 10Y ranges. Changing the sleep target or minimum recalculates the demo locally. It never connects to Apple Health.
+The marketing site's **Try in your browser** section embeds an interactive iPhone-style replica of the app. Explore Dashboard, Trends, and Settings using a deterministic fictional sleep history, including the 1D, 1W, 1M, 1Y, 5Y, and 10Y ranges as well as the **By time / By weekday** Sleep Debt view on 1M and longer ranges. Changing the sleep target or minimum recalculates the demo locally. It never connects to Apple Health.
 
 The buildless demo lives in [`website/demo.html`](website/demo.html); see [`website/README.md`](website/README.md) for preview and verification instructions.
 
@@ -70,6 +76,8 @@ The buildless demo lives in [`website/demo.html`](website/demo.html); see [`webs
 The primary Trends chart pairs each period's shortfall with a running cumulative-debt line. It also shows your net balance—whether you are behind or ahead of your goal—and your average nightly shortfall, making both the current debt and its direction visible.
 
 Switch between six time horizons—Daily, Weekly, Monthly, Yearly, 5 Years, and 10 Years—to see whether debt is an isolated dip, a recurring pattern, or a deficit that has compounded over months or years. The same debt calculation is reused throughout the app, deduplicating fragmented sleep sessions and excluding nights with no recorded sleep so missing data does not become phantom debt.
+
+#### Weekday Breakdown (New in 1.1.0)
 
 For **1M and longer**, switch **By time / By weekday** inside Sleep Debt to spot recurring bad nights. The month view groups individual nights Monday–Sunday, oldest first; longer ranges compare average shortfall per recorded night. Select a weekday for its recording count and dated monthly values, monthly averages (1Y), or yearly averages (5Y/10Y). Night labels refer to their evening, so Monday night includes Tuesday morning. Missing nights remain distinct from recorded nights with zero shortfall.
 
@@ -106,7 +114,8 @@ Somnus/
 ├── Models/
 │   ├── SleepRecord.swift            # Night session, stages, computed metrics
 │   ├── SleepMetrics.swift           # Aggregated stats, scores, chart data points
-│   └── SleepPatternFlag.swift       # Compact non-redundant pattern findings
+│   ├── SleepPatternFlag.swift       # Compact non-redundant pattern findings
+│   └── WeekdayDebt.swift            # Evening-labelled weekday debt & drill-down models
 ├── Services/
 │   ├── HealthKitManager.swift       # HealthKit queries, sample grouping, observation
 │   └── SleepAnalysisEngine.swift    # Scoring, debt, trend/pattern detection, chart data
@@ -115,16 +124,17 @@ Somnus/
 │   └── TrendsViewModel.swift        # Chart data and period switching
 ├── Views/
 │   ├── Dashboard/                   # Score ring, stage bar, quick stats
-│   ├── Trends/                      # Charts, sleep debt, patterns, period selector
+│   ├── Trends/                      # Charts, sleep debt, weekday breakdown, patterns, period selector
 │   ├── Settings/                    # Preferences, HealthKit info sheet
-│   └── Components/                  # MetricCard, SleepStageBar
+│   └── Components/                  # MetricCard, SleepStageBar, SleepTimelineChart
 ├── Extensions/
 │   ├── Color+Theme.swift            # Full color palette (stages, scores, trends)
 │   └── Date+Extensions.swift        # Formatting helpers
-└── Resources/
-    ├── Info.plist                    # Permissions (NSHealthShareUsageDescription)
-    ├── Assets.xcassets/              # App icon, accent color
-    └── Somnus.entitlements           # HealthKit (read-only)
+├── Resources/
+│   ├── Info.plist                    # Permissions (NSHealthShareUsageDescription)
+│   ├── PrivacyInfo.xcprivacy        # Apple privacy manifest
+│   └── Assets.xcassets/              # App icon, accent color
+└── Somnus.entitlements              # HealthKit (read-only)
 ```
 
 **Pattern**: MVVM with `@MainActor` ViewModels, `@Published` state, and Swift concurrency (`async/await`).
@@ -204,7 +214,7 @@ Then in Xcode:
 
 ## Tests
 
-`SomnusTests` covers the analysis engine: nightly dedupe of fragmented sessions, sleep-debt bucketing, score edge cases (phantom "in bed only" records, fragmented nights), the daily fetch window, and grade boundaries. The Somnus scheme includes the test target — run with **⌘U** in Xcode.
+`SomnusTests` covers the analysis engine (`SleepAnalysisEngineTests`) and weekday sleep debt (`WeekdayDebtTests`): nightly dedupe of fragmented sessions, sleep-debt bucketing, evening-based weekday grouping (including after-midnight bedtimes and DST transitions), missing vs. zero-shortfall distinction, monthly/yearly weekday drill-down denominators, score edge cases (phantom "in bed only" records, fragmented nights), the daily fetch window, and grade boundaries. `SomnusUITests` verifies primary navigation and **By weekday** behavior across 1M, 1Y, 5Y, and 10Y. The Somnus scheme includes both test targets — run with **⌘U** in Xcode.
 
 ---
 

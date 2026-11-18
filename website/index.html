@@ -48,6 +48,7 @@
         <p class="availability">Now on the App Store for iPhone and iPad, using Apple Watch sleep data</p>
         <ul class="badge-row hero-badges" aria-label="App details">
           <li class="badge"><span class="badge-key">Platform</span><span class="badge-value is-purple">iOS 17+</span></li>
+          <li class="badge"><span class="badge-key">Version</span><span class="badge-value">1.1.0</span></li>
           <li class="badge"><span class="badge-key">App Store</span><span class="badge-value is-green">Available</span></li>
           <li class="badge"><span class="badge-key">Licence</span><span class="badge-value is-green">MIT</span></li>
         </ul>
@@ -68,10 +69,10 @@
       <div class="demo-introduction">
         <p class="eyebrow">Try in your browser</p>
         <h2 id="demo-title">A little time with Somnus.</h2>
-        <p>Tap through the app, right here. Explore last night, follow a week of sleep debt, or zoom out to five and ten years.</p>
+        <p>Tap through the app, right here. Explore last night, follow a week of sleep debt, compare weekdays, or zoom out to five and ten years.</p>
         <ol class="demo-instructions">
           <li><strong>Start with your dashboard.</strong> Tap Sleep Debt to see what those nights add up to.</li>
-          <li><strong>Explore Trends.</strong> Switch from 1D to 1W, 5Y, or 10Y and scroll to see your sleep stages and duration.</li>
+          <li><strong>Explore Trends.</strong> Switch from 1D to 1W, 1M, 1Y, 5Y, or 10Y—and toggle <em>By weekday</em> on monthly and longer views to spot recurring short nights.</li>
           <li><strong>Make it yours.</strong> Adjust the sleep goals in Settings and watch the figures change.</li>
         </ol>
         <p class="demo-disclaimer"><span class="demo-sample-dot" aria-hidden="true"></span>Interactive demo · Fictional sleep data</p>
@@ -161,6 +162,46 @@
       </div>
     </section>
 
+    <section class="section container" id="weekday-debt" aria-labelledby="weekday-debt-title">
+      <div class="weekday-layout">
+        <div class="weekday-copy">
+          <p class="eyebrow">New in 1.1.0</p>
+          <h2 id="weekday-debt-title">Spot the nights that leave you short.</h2>
+          <p>For monthly and longer views, switch Sleep Debt between <strong>By time</strong> and <strong>By weekday</strong> to uncover whether Mondays—or any other evening—are driving your deficit.</p>
+          <ul class="weekday-points">
+            <li><strong>Month view:</strong> Groups individual nights Monday–Sunday, oldest first, with dated nightly shortfalls and recording counts.</li>
+            <li><strong>1Y, 5Y &amp; 10Y views:</strong> Compares average shortfall per recorded night across weekdays, with monthly or yearly drill-downs.</li>
+            <li><strong>Evening-based labels:</strong> Monday night includes Tuesday morning, while missing nights remain separate from recorded nights with zero shortfall.</li>
+          </ul>
+          <a class="demo-open-link" href="#demo">Try By weekday in the browser demo <span aria-hidden="true">↗</span></a>
+        </div>
+
+        <div class="weekday-cards">
+          <article class="story-card">
+            <div class="story-image">
+              <img src="assets/somnus-weekday-month.png" width="900" height="1955" loading="lazy" alt="Somnus 1M Trends screen switched to By weekday, showing grouped Monday through Sunday shortfall bars and four dated Monday nights.">
+            </div>
+            <div class="story-copy">
+              <span class="story-number">1M</span>
+              <h3>Every night in the month</h3>
+              <p>See four or five occurrences per weekday side by side, oldest first, with dated values for your selection.</p>
+            </div>
+          </article>
+
+          <article class="story-card">
+            <div class="story-image">
+              <img src="assets/somnus-weekday-year.png" width="900" height="1955" loading="lazy" alt="Somnus 1Y Trends screen switched to By weekday, showing average shortfall per recorded night across weekdays and monthly averages for Monday nights.">
+            </div>
+            <div class="story-copy">
+              <span class="story-number">1Y</span>
+              <h3>Averages across years</h3>
+              <p>Compare average shortfall per recorded night and inspect monthly (1Y) or yearly (5Y/10Y) trends for any weekday.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="section container">
       <div class="formula">
         <div>
@@ -221,7 +262,7 @@
             <li class="badge"><span class="badge-key">Language</span><span class="badge-value is-swift">Swift 5.9</span></li>
             <li class="badge"><span class="badge-key">Licence</span><span class="badge-value is-green">MIT</span></li>
             <li class="badge"><span class="badge-key">App Store</span><span class="badge-value is-green">Available</span></li>
-            <li class="badge"><span class="badge-key">Version</span><span class="badge-value">1.0.0</span></li>
+            <li class="badge"><span class="badge-key">Version</span><span class="badge-value">1.1.0</span></li>
             <li class="badge"><span class="badge-key">Privacy</span><span class="badge-value is-green">100% on-device</span></li>
           </ul>
 
