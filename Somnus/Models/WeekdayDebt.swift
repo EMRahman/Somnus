@@ -6,6 +6,11 @@ struct WeekdayDebtNight: Identifiable {
     let date: Date
     let hours: Double?
     let occurrence: Int
+
+    var severity: StatSeverity {
+        guard let hours else { return .normal }
+        return SleepAnalysisEngine.shortfallSeverity(hours: hours)
+    }
 }
 
 struct WeekdayDebtSummary: Identifiable {
@@ -22,6 +27,10 @@ struct WeekdayDebtSummary: Identifiable {
         guard !recorded.isEmpty else { return nil }
         return recorded.reduce(0, +) / Double(recorded.count)
     }
+    var severity: StatSeverity {
+        guard let averageHours else { return .normal }
+        return SleepAnalysisEngine.shortfallSeverity(hours: averageHours)
+    }
 }
 
 struct WeekdayDebtBucket: Identifiable {
@@ -29,4 +38,9 @@ struct WeekdayDebtBucket: Identifiable {
     let date: Date
     let hours: Double?
     let recordedCount: Int
+
+    var severity: StatSeverity {
+        guard let hours else { return .normal }
+        return SleepAnalysisEngine.shortfallSeverity(hours: hours)
+    }
 }

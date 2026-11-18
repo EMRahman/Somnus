@@ -1006,11 +1006,16 @@ dialog::backdrop {
 .weekday-plot { display:flex; align-items:stretch; }
 .weekday-overview { width:calc(100% - 28px); height:170px; }
 .weekday-overview [data-weekday] { cursor:pointer; }
+.weekday-selected-col { fill:#ffffff14; }
 .weekday-axis { width:28px; display:flex; flex-direction:column; justify-content:space-between; padding:14px 0 8px 3px; color:#a7a7aa; font-size:10px; }
-.weekday-key { color:#ff9828; }
-.weekday-buttons { display:flex; margin-right:28px; }
-.weekday-buttons button { flex:1; min-width:0; min-height:44px; background:none; border:0; color:#aaa; font-size:11px; padding:2px; }
-.weekday-buttons button[aria-pressed="true"] { color:white; font-weight:bold; }
+.weekday-legend { display:flex; gap:12px; }
+.weekday-key { font-style:normal; }
+.weekday-key.low { color:#ebb838; }
+.weekday-key.moderate { color:#ff9828; }
+.weekday-key.high { color:#ff453a; }
+.weekday-buttons { display:flex; gap:2px; margin-right:28px; }
+.weekday-buttons button { flex:1; min-width:0; min-height:44px; background:none; border:0; border-radius:8px; color:#aaa; font-size:11px; padding:2px; }
+.weekday-buttons button[aria-pressed="true"] { background:#ffffff1f; color:white; font-weight:bold; }
 .weekday-buttons small, .weekday-summary span, .weekday-details strong { display:block; }
 .weekday-summary { font-size:13px; margin:12px 0; }
 .weekday-summary span { color:#aaa; font-size:11px; margin-top:4px; }
