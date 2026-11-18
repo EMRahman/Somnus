@@ -164,12 +164,9 @@ final class TrendsViewModel: ObservableObject {
         debtChartData = SleepAnalysisEngine.debtByBucket(from: tracked, target: target, period: selectedPeriod)
 
         // Cumulative debt = running total of the debt bars, so the line's bucket-over-bucket
-        // rise is exactly that bar (the bars and line share one hours axis).
-        var runningDebt = 0.0
-        cumulativeDebtData = debtChartData.map { point in
-            runningDebt += point.hours
-            return SleepChartDataPoint(date: point.date, hours: runningDebt, label: point.label)
-        }
+        // rise is exactly that bar (the bars and line share one hours axis). The running night
+        // count lets the line be coloured by average shortfall per night so far.
+        cumulativeDebtData = Self.cumulative(debtChartData)
 
         // Per-night timeline (clock-time axis + stage-coloured bars) is only meaningful for
         // short periods where each bar is an individual night with bedtime/wake/stage detail.
@@ -193,6 +190,18 @@ final class TrendsViewModel: ObservableObject {
         }
     }
 
+    nonisolated static func cumulative(_ debt: [SleepChartDataPoint]) -> [SleepChartDataPoint] {
+        var runningDebt = 0.0
+        var runningNights = 0
+        return debt.map { point in
+            runningDebt += point.hours
+            runningNights += point.nightCount
+            return SleepChartDataPoint(
+                date: point.date, hours: runningDebt, label: point.label, nightCount: runningNights
+            )
+        }
+    }
+
     // MARK: - Preview Support
 
     #if DEBUG
@@ -205,11 +214,7 @@ final class TrendsViewModel: ObservableObject {
         vm.debtChartData = SleepAnalysisEngine.debtByBucket(
             from: SleepRecord.previewRecords, target: previewTarget, period: .weekly
         )
-        var running = 0.0
-        vm.cumulativeDebtData = vm.debtChartData.map { point in
-            running += point.hours
-            return SleepChartDataPoint(date: point.date, hours: running, label: point.label)
-        }
+        vm.cumulativeDebtData = cumulative(vm.debtChartData)
         vm.timelineData = SleepAnalysisEngine.nightlyTimeline(from: SleepRecord.previewRecords)
         vm.patternFlags = SleepAnalysisEngine.detectPatterns(from: SleepRecord.previewRecords)
         return vm

@@ -236,6 +236,15 @@ struct SleepChartDataPoint: Identifiable {
     let date: Date
     let hours: Double
     let label: String
+    /// Recorded nights behind this point — 1 for a single night, more for week/month/year
+    /// buckets, or the running total of nights for a cumulative series.
+    var nightCount: Int = 1
+
+    /// Hours per recorded night, so multi-night buckets can be rated on the nightly
+    /// shortfall scale (`SleepAnalysisEngine.shortfallSeverity`).
+    var hoursPerNight: Double {
+        hours / Double(max(1, nightCount))
+    }
 }
 
 struct StageChartDataPoint: Identifiable {

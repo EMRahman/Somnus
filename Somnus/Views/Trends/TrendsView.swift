@@ -448,32 +448,48 @@ struct TrendsView: View {
                 // Nightly debt bars
                 ForEach(viewModel.debtChartData) { point in
                     let fitsInline = point.hours >= debtBarMinHoursForInlineLabel
+                    // Rated per night, so a week/month/year bucket is coloured by its
+                    // average night rather than its (much larger) summed shortfall.
+                    let severity = SleepAnalysisEngine.shortfallSeverity(hours: point.hoursPerNight)
                     BarMark(
                         x: .value("Date", point.date, unit: chartUnit),
                         y: .value("Nightly debt", point.hours)
                     )
-                    .foregroundStyle(Color.chartBarBelow)
+                    .foregroundStyle(Color.shortfallColor(for: severity))
                     .cornerRadius(4)
                     .annotation(position: fitsInline ? .overlay : .top, spacing: 2) {
                         if showsBarLabels, let text = debtBarLabel(point.hours) {
                             Text(text)
                                 .font(.caption2)
                                 .fontWeight(.semibold)
-                                .foregroundStyle(fitsInline ? .white : .primary)
+                                // Dark text keeps inline labels legible on the light yellow bars.
+                                .foregroundStyle(fitsInline ? (severity == .normal ? Color.black.opacity(0.75) : .white) : .primary)
                         }
                     }
                 }
 
-                // Cumulative debt line (running total of the bars)
-                ForEach(viewModel.cumulativeDebtData) { point in
-                    LineMark(
-                        x: .value("Date", point.date, unit: chartUnit),
-                        y: .value("Cumulative debt", point.hours)
-                    )
-                    .foregroundStyle(Color.chartBar)
-                    .lineStyle(StrokeStyle(lineWidth: 2))
-                    .symbol(.circle)
-                    .symbolSize(cumulativeMarkerSize)
+                // Cumulative debt line (running total of the bars). Each segment is its own
+                // series so it can take the colour of the average shortfall per night so far.
+                ForEach(cumulativeDebtSegments) { segment in
+                    ForEach(segment.points) { point in
+                        LineMark(
+                            x: .value("Date", point.date, unit: chartUnit),
+                            y: .value("Cumulative debt", point.hours),
+                            series: .value("Segment", segment.id)
+                        )
+                        .foregroundStyle(segment.color)
+                        .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                    }
+                }
+                if cumulativeMarkerSize > 0 || viewModel.cumulativeDebtData.count == 1 {
+                    ForEach(viewModel.cumulativeDebtData) { point in
+                        PointMark(
+                            x: .value("Date", point.date, unit: chartUnit),
+                            y: .value("Cumulative debt", point.hours)
+                        )
+                        .foregroundStyle(Color.shortfallColor(hours: point.hoursPerNight))
+                        .symbolSize(max(cumulativeMarkerSize, 40))
+                    }
                 }
             }
             .chartYScale(domain: 0...cumulativeDebtYMax)
@@ -505,24 +521,60 @@ struct TrendsView: View {
             .frame(height: 200)
 
             // Legend
-            HStack(spacing: 16) {
-                HStack(spacing: 5) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.chartBarBelow)
-                        .frame(width: 10, height: 10)
-                    Text("Nightly debt")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 16) {
+                    HStack(spacing: 5) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.shortfallModerate)
+                            .frame(width: 10, height: 10)
+                        Text(isSingleNightDebtBuckets ? "Nightly debt" : "Period debt")
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: 5) {
+                        Capsule()
+                            .fill(Color.shortfallModerate)
+                            .frame(width: 16, height: 3)
+                        Text("Cumulative debt")
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                HStack(spacing: 5) {
-                    Capsule()
-                        .fill(Color.chartBar)
-                        .frame(width: 16, height: 3)
-                    Text("Cumulative debt")
-                        .font(.caption2)
+                HStack(spacing: 12) {
+                    Label("<0.5h", systemImage: "circle.fill")
+                        .foregroundStyle(Color.shortfallLow)
+                    Label("0.5–1h", systemImage: "circle.fill")
+                        .foregroundStyle(Color.shortfallModerate)
+                    Label("1h+", systemImage: "circle.fill")
+                        .foregroundStyle(Color.shortfallHigh)
+                    Text("per night")
                         .foregroundStyle(.secondary)
                 }
             }
+            .font(.caption2)
+        }
+    }
+
+    /// Daily and weekly debt bars are single nights; longer periods sum a week/month/year.
+    private var isSingleNightDebtBuckets: Bool {
+        viewModel.selectedPeriod == .daily || viewModel.selectedPeriod == .weekly
+    }
+
+    private struct CumulativeDebtSegment: Identifiable {
+        let id: Int
+        let points: [SleepChartDataPoint]
+        let color: Color
+    }
+
+    /// Consecutive pairs of cumulative points, each coloured by the average shortfall per night
+    /// at the segment's end — so the line shifts colour as the running average crosses a band.
+    private var cumulativeDebtSegments: [CumulativeDebtSegment] {
+        let points = viewModel.cumulativeDebtData
+        guard points.count > 1 else { return [] }
+        return (1..<points.count).map { index in
+            CumulativeDebtSegment(
+                id: index,
+                points: [points[index - 1], points[index]],
+                color: Color.shortfallColor(hours: points[index].hoursPerNight)
+            )
         }
     }
 

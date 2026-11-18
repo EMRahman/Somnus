@@ -122,6 +122,33 @@ final class SleepAnalysisEngineTests: XCTestCase {
         XCTAssertEqual(debt[0].hours, 0.7, accuracy: 0.001)
     }
 
+    func testDebtBucketsAndCumulativeLineRateShortfallPerNight() {
+        let debt = [
+            SleepChartDataPoint(date: night(daysAgo: 14), hours: 2.1, label: "", nightCount: 7),  // 0.3h/night
+            SleepChartDataPoint(date: night(daysAgo: 7), hours: 10.5, label: "", nightCount: 7)   // 1.5h/night
+        ]
+
+        XCTAssertEqual(SleepAnalysisEngine.shortfallSeverity(hours: debt[0].hoursPerNight), .normal)
+        XCTAssertEqual(SleepAnalysisEngine.shortfallSeverity(hours: debt[1].hoursPerNight), .critical)
+
+        // Running average after both weeks: 12.6h over 14 nights = 0.9h/night.
+        let cumulative = TrendsViewModel.cumulative(debt)
+        XCTAssertEqual(cumulative.map(\.nightCount), [7, 14])
+        XCTAssertEqual(cumulative[1].hours, 12.6, accuracy: 0.001)
+        XCTAssertEqual(SleepAnalysisEngine.shortfallSeverity(hours: cumulative[1].hoursPerNight), .concerning)
+    }
+
+    func testDebtByBucketCountsNightsPerBucket() {
+        let records = [
+            record(night: night(daysAgo: 2), bedHour: 23, sleepHours: 6),
+            record(night: night(daysAgo: 1), bedHour: 23, sleepHours: 9)
+        ]
+
+        let debt = SleepAnalysisEngine.debtByBucket(from: records, target: 8.0, period: .weekly)
+
+        XCTAssertEqual(debt.map(\.nightCount), [1, 1])
+    }
+
     // MARK: - Score
 
     func testScoreIsZeroWithoutTrackedSleep() {
