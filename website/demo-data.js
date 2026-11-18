@@ -172,7 +172,28 @@
       timeline: ['1D', '1W', '1M'].includes(period) ? nights.slice(-7).map(timeline) : []
     };
   }
-  const api = Object.freeze({periods: Object.freeze(periods), records, summarize});
+  // SleepRecord dates are wake days; comparisons are labelled by the prior evening.
+  function weekdayDebt(nights, target, period) {
+    const groups = Array.from({length: 7}, (_, weekday) => ({weekday, nights: [], history: []}));
+    for (const record of nights) {
+      const timestamp = record.timestamp - DAY;
+      const weekday = (new Date(timestamp).getUTCDay() + 6) % 7;
+      groups[weekday].nights.push({timestamp, hours: Math.max(0, target - record.hours)});
+    }
+    for (const group of groups) {
+      group.average = group.nights.length ? mean(group.nights.map(night => night.hours)) : null;
+      const buckets = new Map();
+      for (const night of group.nights) {
+        const date = new Date(night.timestamp);
+        const key = period === '1Y' ? iso(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1)) : String(date.getUTCFullYear());
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(night.hours);
+      }
+      group.history = [...buckets].map(([key, values]) => ({key, average: mean(values), count: values.length}));
+    }
+    return groups;
+  }
+  const api = Object.freeze({periods: Object.freeze(periods), records, summarize, weekdayDebt});
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.SomnusDemoData = api;
 })(typeof window !== 'undefined' ? window : null);

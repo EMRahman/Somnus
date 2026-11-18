@@ -92,3 +92,26 @@ test('unsupported periods and invalid settings fail explicitly', () => {
     assert.throws(() => data.summarize('1W', 8, value), RangeError);
   }
 });
+
+test('weekday debt uses evening dates and averages nightly shortfalls including zeroes', () => {
+  const mondayWake = Date.UTC(2026, 0, 6); // Tuesday wake, Monday evening
+  const nights = [
+    {timestamp: mondayWake, hours: 6},
+    {timestamp: mondayWake + 7 * 86400000, hours: 10},
+    {timestamp: mondayWake + 86400000, hours: 7}
+  ];
+  const groups = data.weekdayDebt(nights, 8, '1Y');
+  assert.deepEqual(groups[0].nights.map(n => n.hours), [2, 0]);
+  assert.equal(groups[0].average, 1);
+  assert.deepEqual(groups[0].history, [{key: '2026-01-01', average: 1, count: 2}]);
+  assert.equal(groups[1].average, 1);
+  assert.equal(groups[2].average, null);
+  for (const period of ['1M', '1Y', '5Y', '10Y']) {
+    const summary = data.summarize(period);
+    const weekdays = data.weekdayDebt(summary.records, 8, period);
+    assert.equal(sum(weekdays.map(group => group.nights.length)), summary.nightCount);
+    close(sum(weekdays.flatMap(group => group.nights.map(n => n.hours))), summary.totalSleepDebt);
+    weekdays.forEach(group => close(sum(group.history.map(bucket => bucket.average * bucket.count)), sum(group.nights.map(n => n.hours))));
+  }
+  assert.equal(data.weekdayDebt(nights, 6, '1Y')[0].average, 0);
+});

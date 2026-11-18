@@ -1,0 +1,100 @@
+<div id="somnus-weekday-proposal" class="viz-dotted-background">
+  <article class="somnus-panel" aria-label="Proposed monthly sleep debt card">
+    <header><strong>Sleep Debt</strong><span>1M</span></header>
+    <div class="somnus-caption">19 Oct–15 Nov · Illustrative data</div>
+    <div class="somnus-switch" role="group" aria-label="Group monthly sleep debt">
+      <button type="button" data-mode="week" aria-pressed="false">By week</button>
+      <button type="button" data-mode="weekday" aria-pressed="true">By weekday</button>
+    </div>
+    <div class="somnus-measure">Nightly shortfall · hours</div>
+    <div class="somnus-chart">
+      <div class="somnus-axis" aria-hidden="true"><span>2h</span><span>1h</span><span>0h</span></div>
+      <div class="somnus-plot" role="group" aria-label="Nightly shortfall grouped Monday to Sunday"></div>
+    </div>
+    <div class="somnus-detail" aria-live="polite"></div>
+    <div class="somnus-dates"></div>
+    <footer>Night labels use the evening the night belongs to.<br>Each group runs oldest → newest.</footer>
+  </article>
+</div>
+<style>
+  #somnus-weekday-proposal { padding:24px 0; color-scheme:light dark; }
+  #somnus-weekday-proposal .somnus-panel { --s-text:light-dark(#23212c,#f0eef7); --s-sub:light-dark(#686373,#b1a9bf); --s-base:light-dark(#f3f1f7,#1d1927); --s-muted:light-dark(#e5e1ec,#302938); --s-grid:light-dark(#d9d3e1,#3a3346); --s-bar:light-dark(#b45c12,#eea253); --s-purple:light-dark(#7d50c3,#ae8ce5); background:var(--s-base); color:var(--s-text); font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; max-width:410px; padding:20px; border-radius:18px; margin:auto; }
+  #somnus-weekday-proposal header { display:flex; justify-content:space-between; align-items:center; }
+  #somnus-weekday-proposal strong { font-size:18px; font-weight:600; }
+  #somnus-weekday-proposal header span { color:var(--s-purple); font-weight:600; }
+  #somnus-weekday-proposal .somnus-caption { font-size:12px; color:var(--s-sub); margin-top:4px; }
+  #somnus-weekday-proposal .somnus-switch { display:flex; background:var(--s-muted); padding:3px; border-radius:9px; margin:18px 0; }
+  #somnus-weekday-proposal .somnus-switch button { flex:1; border:0; background:transparent; color:var(--s-sub); font:inherit; font-size:13px; min-height:38px; border-radius:7px; cursor:pointer; }
+  #somnus-weekday-proposal .somnus-switch button[aria-pressed="true"] { background:var(--s-base); color:var(--s-text); font-weight:600; }
+  #somnus-weekday-proposal .somnus-measure { font-size:12px; color:var(--s-sub); margin-bottom:12px; }
+  #somnus-weekday-proposal .somnus-chart { display:flex; gap:7px; }
+  #somnus-weekday-proposal .somnus-axis { width:24px; flex-shrink:0; height:190px; display:flex; flex-direction:column; justify-content:space-between; color:var(--s-sub); font-size:11px; }
+  #somnus-weekday-proposal .somnus-plot { flex:1; min-width:0; position:relative; display:grid; gap:6px; }
+  #somnus-weekday-proposal .somnus-plot::before { content:""; position:absolute; inset:0 0 30px; background:linear-gradient(var(--s-grid),var(--s-grid)) top/100% 1px no-repeat,linear-gradient(var(--s-grid),var(--s-grid)) center/100% 1px no-repeat,linear-gradient(var(--s-grid),var(--s-grid)) bottom/100% 1px no-repeat; pointer-events:none; }
+  #somnus-weekday-proposal .somnus-group { display:flex; flex-direction:column; gap:9px; border:0; padding:0; background:transparent; color:var(--s-sub); font:inherit; font-size:11px; min-width:0; cursor:pointer; }
+  #somnus-weekday-proposal .somnus-group[aria-pressed="true"] { color:var(--s-text); font-weight:600; }
+  #somnus-weekday-proposal .somnus-bars { display:flex; align-items:flex-end; gap:2px; width:100%; height:190px; position:relative; }
+  #somnus-weekday-proposal .somnus-bar { background:var(--s-bar); flex:1; border-radius:2px 2px 0 0; opacity:.55; }
+  #somnus-weekday-proposal .somnus-group[aria-pressed="true"] .somnus-bar { opacity:1; }
+  #somnus-weekday-proposal .somnus-group-label { align-self:center; }
+  #somnus-weekday-proposal .somnus-detail { margin-top:22px; font-weight:600; font-size:14px; }
+  #somnus-weekday-proposal .somnus-dates { font-size:12px; margin-top:6px; color:var(--s-sub); min-height:36px; }
+  #somnus-weekday-proposal footer { margin-top:16px; color:var(--s-sub); font-size:11px; }
+  #somnus-weekday-proposal .somnus-line { position:absolute; top:0; left:0; width:100%; height:190px; pointer-events:none; overflow:visible; }
+  #somnus-weekday-proposal .somnus-line polyline { fill:none; stroke:var(--s-purple); stroke-width:2; vector-effect:non-scaling-stroke; }
+  @media (max-width:380px) { #somnus-weekday-proposal .somnus-panel { padding:16px 12px; } #somnus-weekday-proposal .somnus-plot { gap:5px; } }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('somnus-weekday-proposal');
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const values = [[1.3,1.7,1.4,1.6],[.6,.3,.5,.4],[.3,.2,.4,.1],[.4,.7,.5,.6],[.1,0,.2,.1],[0,.1,0,.2],[.5,.7,.6,.4]];
+  const saved = window.openai?.widgetState?.modelContent;
+  let mode = saved?.mode === 'week' ? 'week' : 'weekday';
+  let selected = Number.isInteger(saved?.weekday) && saved.weekday >= 0 && saved.weekday < 7 ? saved.weekday : 0;
+  const plot = root.querySelector('.somnus-plot');
+  function save() { window.openai?.setWidgetState?.({modelContent:{mode,weekday:selected}})?.catch(() => {}); }
+  function render() {
+    const grouped = mode === 'weekday';
+    root.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed',String(b.dataset.mode === mode)));
+    root.querySelector('.somnus-axis').innerHTML = (grouped ? ['2h','1h','0h'] : ['16h','8h','0h']).map(v => '<span>'+v+'</span>').join('');
+    root.querySelector('.somnus-measure').textContent = grouped ? 'Nightly shortfall · hours' : 'Weekly shortfall + cumulative debt · hours';
+    plot.style.gridTemplateColumns = `repeat(${grouped ? 7 : 4},minmax(0,1fr))`;
+    plot.setAttribute('aria-label',grouped ? 'Nightly shortfall grouped Monday to Sunday' : 'Four weekly shortfalls and cumulative debt line');
+    plot.replaceChildren();
+    const weekly = [0,1,2,3].map(w => values.reduce((total,day) => total+day[w],0));
+    const groups = grouped ? values : weekly.map(v => [v]);
+    groups.forEach((group,i) => {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'somnus-group';
+      button.setAttribute('aria-pressed',String(grouped && selected === i));
+      button.setAttribute('aria-label',grouped ? `${days[i]} nights: ${group.join(', ')} hours shortfall. Select for average.` : `Week ${i+1}: ${group[0].toFixed(1)} hours shortfall`);
+      const bars = document.createElement('span'); bars.className = 'somnus-bars';
+      group.forEach(v => { const bar = document.createElement('span'); bar.className = 'somnus-bar'; bar.style.height = `${Math.max(2,v/(grouped?2:16)*190)}px`; bars.appendChild(bar); });
+      const label = document.createElement('span'); label.className = 'somnus-group-label'; label.textContent = grouped ? days[i] : ['19 Oct','26 Oct','2 Nov','9 Nov'][i];
+      button.append(bars,label); plot.appendChild(button);
+      button.addEventListener('click',() => { if(grouped) { selected=i; render(); save(); } });
+    });
+    if (!grouped) {
+      let total=0;
+      const points=weekly.map((v,i) => { total+=v; return `${12.5+i*25},${190-total/16*190}`; }).join(' ');
+      const ns='http://www.w3.org/2000/svg'; const svg=document.createElementNS(ns,'svg');
+      svg.setAttribute('viewBox','0 0 100 190'); svg.setAttribute('preserveAspectRatio','none'); svg.setAttribute('aria-hidden','true'); svg.classList.add('somnus-line');
+      const line=document.createElementNS(ns,'polyline'); line.setAttribute('points',points); svg.appendChild(line); plot.appendChild(svg);
+    }
+    const avg = values[selected].reduce((a,b)=>a+b,0)/4;
+    root.querySelector('.somnus-detail').textContent = grouped ? `${days[selected]} nights · ${avg.toFixed(1)}h average shortfall · 4 nights` : '13.9h cumulative shortfall';
+    root.querySelector('.somnus-dates').textContent = grouped ? values[selected].map((v,w) => {
+      const date = new Date(Date.UTC(2026,9,19+selected+w*7));
+      return `${date.toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'})}: ${v.toFixed(1)}h`;
+    }).join(' · ') : 'Bars: weekly shortfall · Line: cumulative debt';
+    root.querySelector('footer').innerHTML = grouped ? 'Night labels use the evening the night belongs to.<br>Each group runs oldest → newest.' : 'Weekly totals across the selected month.<br>Switch to By weekday to compare recurring nights.';
+  }
+  root.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click',()=>{ mode=b.dataset.mode; render(); save(); }));
+  window.addEventListener('openai:set_globals',e => {
+    const s=e.detail?.globals?.widgetState?.modelContent;
+    if(!s) return; mode=s.mode==='week'?'week':'weekday'; selected=Number.isInteger(s.weekday)&&s.weekday>=0&&s.weekday<7?s.weekday:0; render();
+  });
+  render();
+})();
+</script>
