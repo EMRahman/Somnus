@@ -19,6 +19,7 @@ Open `http://localhost:8765/#demo`. You can also open `website/index.html` direc
 - `demo.html`, `demo.css`, and `demo.js` reproduce the app's dark Dashboard, Trends, and Settings screens. The native SwiftUI source and the screenshots in `assets/` are the visual references.
 - `demo-data.js` generates 3,652 fictional nights ending on 21 October 2026. A fixed date keeps previews reproducible. The 1D, 1W, 1M, 1Y, 5Y, and 10Y views all derive from this same history.
 - Accumulated debt sums positive nightly shortfalls. The signed net balance also accounts for surplus sleep, matching the native app's separate metrics. The sleep target controls debt; the minimum acceptable duration controls target compliance and duration-chart thresholds. Both are session-only demo settings.
+- Sleep Debt bars, the cumulative line, and weekday views use the native app's shortfall-severity colours: under 0.5h yellow, 0.5–1h orange, 1h+ red. Multi-night buckets are rated by shortfall per night, and the line by the running average per night.
 - The Sleep Debt card offers weekday comparisons for 1M and longer: monthly individual nights and longer-range averages, grouped by the evening before each wake date. Zero-shortfall nights are included.
 - Daily and weekly charts show stage timelines. Longer ranges aggregate into weekly, monthly, or yearly buckets. The score uses the native app's weighted components.
 
