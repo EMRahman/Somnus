@@ -152,6 +152,8 @@ xcrun simctl io <udid> screenshot --type=png 05-weekday-year.png
 
 The 1.2.0 iPhone set came from the capture test on the iPhone 18 Pro Max simulator (iOS 27.0). On the iPad Pro 13-inch (M5) simulator the UI-test automation session stalled on relaunch, so the iPad set was captured with `simctl` and flattened. Both sets were captured on 18 November 2026 with the status bar at 09:41.
 
+On iPad the whole 1W Trends page fits on screen, so the `duration` destination produced a byte-identical copy of 02. iPad 03 was therefore recaptured on 19 November 2026 as the **1M By time** view (`-screenshotDestination=monthly-duration`), matching what iPad 03 showed in 1.1.0; its status bar reads Thu 19 Nov because `simctl status_bar` rejected a date override.
+
 ## Build, signing and upload
 
 `project.yml` is the source of truth for **1.2.0 / 5**; `Info.plist` reads `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`. Generated Xcode projects are ignored. Retain development team `FXNHMJHQFS`, the bundle ID and entitlements.
@@ -187,5 +189,5 @@ The draft is left for the owner to submit:
 | Website demo | `node --test website/tests/demo-data.test.cjs` 6/6 passed; Playwright browser suite (Chromium) passed |
 | Screenshots | All ten retaken 18 November 2026 (iPhone 18 Pro Max and iPad Pro 13-inch (M5) simulators, iOS 27.0); 1320 × 2868 and 2064 × 2752, no alpha. Website assets regenerated from the iPhone captures |
 | Archive / export / upload | **Uploaded 19 November 2026, 08:57 UTC** by the owner from Xcode Organizer (archive `Somnus 19-11-2026, 08.52`, source `bc091b2`). Archive: 1.2.0 / 5, `com.ehsanrahman.somnus`, iPhone + iPad, iOS 17.0, arm64, dSYM, privacy manifest (no tracking/collection, `CA92.1`), both Health purpose strings, `ITSAppUsesNonExemptEncryption = false`, 0 screenshot-fixture strings. Distribution re-sign: Apple Distribution (FXNHMJHQFS), entitlements = HealthKit, `beta-reports-active`, `get-task-allow = 0`, no background delivery. Apple validation passed (08:53) and `UPLOAD SUCCEEDED with no errors`, delivery `eb3eef6c-3275-4b32-b035-9bc655dd2197`. The agent's own archive attempts failed at CodeSign (`errSecInternalComponent`) because it ran in a background launchd session without keychain access |
-| App Store Connect 1.2.0 draft | **Pending** — Claude in Chrome was not connected to the agent session; fill from this document |
-| Submission / release state | Not submitted — owner will submit |
+| App Store Connect 1.2.0 draft | **Saved 19 November 2026** via Claude in Chrome: version 1.2.0 created; What's New, Description, Promotional Text and Review Notes replaced with the copy above; keywords, URLs, copyright and review contact retained; build **1.2.0 (5)** selected with no export-compliance prompt; release option **Manually release this version**; iPhone large display (6.9") and iPad 13" slots each replaced with the five 1.2.0 screenshots in order 01–05. Not added for review |
+| Submission / release state | **Submitted for review by the owner on 19 November 2026**; manual release, so the owner releases after approval |
