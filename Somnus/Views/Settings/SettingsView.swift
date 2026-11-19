@@ -101,6 +101,16 @@ struct SettingsView: View {
                         Text("How Sleep Score Is Calculated")
                     }
 
+                    Link(destination: URL(string: "https://apps.apple.com/app/id6812648966?action=write-review")!) {
+                        HStack {
+                            Text("Review Somnus")
+                            Spacer()
+                            Image(systemName: "arrow.up.right.square")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
                     Link(destination: URL(string: "https://www.sleepfoundation.org")!) {
                         HStack {
                             Text("Sleep Foundation Resources")
