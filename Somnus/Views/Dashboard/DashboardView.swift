@@ -2,7 +2,14 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
+    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var navigation: AppNavigation
+    private let appReview = AppReview()
+
+    private var isShowingSleepData: Bool {
+        navigation.selectedTab == .dashboard && scenePhase == .active
+            && !viewModel.isLoading && !viewModel.hasNoData && viewModel.errorMessage == nil
+    }
 
     var body: some View {
         NavigationStack {
@@ -58,6 +65,9 @@ struct DashboardView: View {
             }
             .task {
                 await viewModel.loadData()
+            }
+            .onChange(of: isShowingSleepData, initial: true) { _, isShowing in
+                if isShowing { appReview.recordSleepCheck() }
             }
         }
     }

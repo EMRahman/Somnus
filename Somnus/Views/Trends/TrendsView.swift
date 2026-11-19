@@ -1,10 +1,16 @@
 import SwiftUI
 import Charts
+import StoreKit
 
 struct TrendsView: View {
     @StateObject private var viewModel = TrendsViewModel()
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.requestReview) private var requestReview
     @EnvironmentObject private var navigation: AppNavigation
     @State private var debtGrouping: DebtGrouping = .time
+    @State private var isEligibleForReview = false
+    @State private var visibleDebtChartOffset: CGFloat?
+    private let appReview = AppReview()
 
     private enum DebtGrouping: String, CaseIterable {
         case time = "By time"
@@ -21,6 +27,16 @@ struct TrendsView: View {
 
     private var supportsWeekdayDebt: Bool {
         viewModel.selectedPeriod != .daily && viewModel.selectedPeriod != .weekly
+    }
+
+    private var isShowingSleepData: Bool {
+        navigation.selectedTab == .trends && scenePhase == .active
+            && !viewModel.isLoading && viewModel.errorMessage == nil
+            && (viewModel.metrics?.trackedNightCount ?? 0) > 0
+    }
+
+    private var isWatchingWeeklyDebtChart: Bool {
+        isShowingSleepData && isEligibleForReview && viewModel.selectedPeriod == .weekly
     }
 
     var body: some View {
@@ -118,8 +134,27 @@ struct TrendsView: View {
                 .onChange(of: viewModel.isLoading) { _, loading in
                     if !loading { scrollToPendingSection(proxy) }
                 }
+                .onChange(of: isShowingSleepData, initial: true) { _, isShowing in
+                    if isShowing { appReview.recordSleepCheck() }
+                    isEligibleForReview = isShowing && appReview.canRequest()
+                }
+                .onPreferenceChange(VisibleDebtChartOffset.self) { offset in
+                    visibleDebtChartOffset = offset
+                }
+                .task(id: isWatchingWeeklyDebtChart ? visibleDebtChartOffset : nil) {
+                    await requestReviewAfterReadingChart()
+                }
             }
         }
+    }
+
+    private func requestReviewAfterReadingChart() async {
+        guard isWatchingWeeklyDebtChart, visibleDebtChartOffset != nil else { return }
+        // A new scroll offset restarts the wait, and leaving the chart cancels it.
+        try? await Task.sleep(for: .seconds(8))
+        guard !Task.isCancelled, isWatchingWeeklyDebtChart, appReview.markRequest() else { return }
+        isEligibleForReview = false
+        requestReview()
     }
 
     /// Fulfills a pending deep-link scroll once its target section exists and any requested period
@@ -519,6 +554,19 @@ struct TrendsView: View {
                 }
             }
             .frame(height: 200)
+            .background {
+                if isWatchingWeeklyDebtChart {
+                    GeometryReader { proxy in
+                        let chart = CGRect(origin: .zero, size: proxy.size)
+                        let viewport = proxy.bounds(of: .scrollView(axis: .vertical)) ?? .null
+                        let isVisible = chart.intersection(viewport).height >= chart.height / 2
+                        Color.clear.preference(
+                            key: VisibleDebtChartOffset.self,
+                            value: isVisible ? viewport.minY : nil
+                        )
+                    }
+                }
+            }
 
             // Legend
             VStack(alignment: .leading, spacing: 6) {
@@ -718,6 +766,14 @@ struct TrendsView: View {
         case .concerning: return .statConcerning
         case .critical: return .statCritical
         }
+    }
+}
+
+private struct VisibleDebtChartOffset: PreferenceKey {
+    static let defaultValue: CGFloat? = nil
+
+    static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
+        value = nextValue() ?? value
     }
 }
 

@@ -29,6 +29,7 @@ final class SomnusUITests: XCTestCase {
         XCTAssertTrue(app.buttons["How Sleep Data Works"].waitForExistence(timeout: 3))
 
         app.swipeUp()
+        XCTAssertTrue(app.descendants(matching: .any)["Review Somnus"].firstMatch.waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["How Sleep Score Is Calculated"].waitForExistence(timeout: 3))
         app.buttons["How Sleep Score Is Calculated"].tap()
         XCTAssertTrue(app.navigationBars["Sleep Score"].waitForExistence(timeout: 3))
