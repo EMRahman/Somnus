@@ -1,8 +1,8 @@
 # App Store update handoff — Somnus: Sleep Debt 1.2.0
 
-Prepared: **18 November 2026**. This prepares an update to the existing [Somnus: Sleep Debt app](https://apps.apple.com/app/id6812648966). Version 1.1.0 (build 4) went live on 18 November 2026; its handoff, archive and upload results remain in Git history.
+The handoff was prepared on **18 November 2026**. **Somnus 1.2.0 (build 5) went live on 19 November 2026 at 21:51 UTC**, as verified in the UK and US storefronts. [Somnus on the App Store](https://apps.apple.com/app/id6812648966)
 
-**Target: version 1.2.0, build 5.** 1.2.0 is a minor-version bump because the release adds user-visible chart behaviour (severity colours) rather than only fixing bugs. Build 5 increments 1.1.0's build 4. The owner submits for review personally; this handoff ends at a saved draft.
+Version 1.2.0 adds severity colours to the Sleep Debt charts. The previous release, 1.1.0 (build 4), went live on 18 November 2026. Its handoff, archive and upload results remain in Git history.
 
 ## Release scope and evidence
 
@@ -18,7 +18,7 @@ The feature is merged in [PR #18](https://github.com/EMRahman/Somnus/pull/18) (w
 | --- | --- |
 | Unit and UI tests | See completion record below |
 | Physical test device | **iPhone 16, iOS 27.2.1** — the owner tested the latest changes on this phone and approved them on 18 November 2026 (Debug/Xcode install of `ead41c9`) |
-| Website demo | Mirrors the severity colours (PRs #18/#19); parity gaps closed in this release PR (see below) |
+| Website demo | Mirrors the severity colours from PRs #18 and #19, with additional fixes in [PR #20](https://github.com/EMRahman/Somnus/pull/20) |
 
 ## App Store Connect field map
 
@@ -168,26 +168,16 @@ xcodebuild -exportArchive -archivePath <path>/Somnus-1.2.0-build5.xcarchive \
 
 The export options use `method = app-store-connect`, `destination = upload`, `teamID = FXNHMJHQFS`, automatic signing. Verify in the archive: `CFBundleShortVersionString = 1.2.0`, `CFBundleVersion = 5`, arm64, dSYM, `PrivacyInfo.xcprivacy`, HealthKit entitlement, both Health purpose strings, `ITSAppUsesNonExemptEncryption = false`, no screenshot-fixture strings, and `get-task-allow = false` in the distribution-signed app.
 
-## Owner submission checklist
-
-The draft is left for the owner to submit:
-
-- [ ] Open the 1.2.0 version page and check What's New, description, promotional text, screenshots and review notes.
-- [ ] Confirm build **1.2.0 (5)** is selected and no Missing Compliance prompt remains.
-- [ ] Optionally install 1.2.0 (5) from TestFlight on the iPhone 16 for a final distribution-build check.
-- [ ] Click **Add for Review**, then **Submit for Review**. With manual release, release the approved version when ready.
-- [ ] After release, merge or deploy the website update so the site's version badge (1.2.0) matches the store.
-
-## Handoff completion record
+## Release completion record
 
 | Item | Value / result |
 | --- | --- |
-| Release source commit | `ead41c9` (main) + this release PR (version bump, screenshots, docs, website) |
-| Live version inspected | 1.1.0, released 18 November 2026 (public App Store lookup) |
+| Release source | The chart changes were merged in `ead41c9`. [PR #20](https://github.com/EMRahman/Somnus/pull/20) added the version bump, screenshots, documentation and website updates. |
 | Owner device test | iPhone 16, iOS 27.2.1 — passed (owner, 18 November 2026) |
 | Unit / UI tests | Passed 18 November 2026 on iPhone 18 Pro simulator, iOS 27.0: 23 unit, 2 UI (screenshot capture test skips unless opted in) |
 | Website demo | `node --test website/tests/demo-data.test.cjs` 6/6 passed; Playwright browser suite (Chromium) passed |
 | Screenshots | All ten retaken 18 November 2026 (iPhone 18 Pro Max and iPad Pro 13-inch (M5) simulators, iOS 27.0); 1320 × 2868 and 2064 × 2752, no alpha. Website assets regenerated from the iPhone captures |
 | Archive / export / upload | **Uploaded 19 November 2026, 08:57 UTC** by the owner from Xcode Organizer (archive `Somnus 19-11-2026, 08.52`, source `bc091b2`). Archive: 1.2.0 / 5, `com.ehsanrahman.somnus`, iPhone + iPad, iOS 17.0, arm64, dSYM, privacy manifest (no tracking/collection, `CA92.1`), both Health purpose strings, `ITSAppUsesNonExemptEncryption = false`, 0 screenshot-fixture strings. Distribution re-sign: Apple Distribution (FXNHMJHQFS), entitlements = HealthKit, `beta-reports-active`, `get-task-allow = 0`, no background delivery. Apple validation passed (08:53) and `UPLOAD SUCCEEDED with no errors`, delivery `eb3eef6c-3275-4b32-b035-9bc655dd2197`. The agent's own archive attempts failed at CodeSign (`errSecInternalComponent`) because it ran in a background launchd session without keychain access |
-| App Store Connect 1.2.0 draft | **Saved 19 November 2026** via Claude in Chrome: version 1.2.0 created; What's New, Description, Promotional Text and Review Notes replaced with the copy above; keywords, URLs, copyright and review contact retained; build **1.2.0 (5)** selected with no export-compliance prompt; release option **Manually release this version**; iPhone large display (6.9") and iPad 13" slots each replaced with the five 1.2.0 screenshots in order 01–05. Not added for review |
-| Submission / release state | **Submitted for review by the owner on 19 November 2026**; manual release, so the owner releases after approval |
+| App Store Connect 1.2.0 draft | **Saved 19 November 2026** via Claude in Chrome: version 1.2.0 created; What's New, Description, Promotional Text and Review Notes replaced with the copy above; keywords, URLs, copyright and review contact retained; build **1.2.0 (5)** selected with no export-compliance prompt; release option **Manually release this version**; iPhone large display (6.9") and iPad 13" slots each replaced with the five 1.2.0 screenshots in order 01–05. |
+| Submission and release | **Submitted for review by the owner on 19 November 2026.** Version 1.2.0 went live that day at **21:51 UTC**. The UK and US storefronts showed the updated description, release notes and five screenshots for each device type. [App Store](https://apps.apple.com/app/id6812648966) |
+| Website deployment | GitHub Pages successfully deployed `a41c18b` after PR #20 merged on **20 November 2026**. The live homepage showed 1.2.0, and the demo and screenshots matched the release. [Deployment run](https://github.com/EMRahman/Somnus/actions/runs/44705971356) |
