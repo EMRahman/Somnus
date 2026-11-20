@@ -633,6 +633,11 @@ button svg {
   stroke-width: 1px;
 }
 
+.chart .bar-label.on-light {
+  fill: rgba(0, 0, 0, .75);
+  stroke: none;
+}
+
 .chart .minimum-label {
   fill: #45b65e;
   paint-order: stroke;
@@ -1007,6 +1012,7 @@ dialog::backdrop {
 .weekday-overview { width:calc(100% - 28px); height:170px; }
 .weekday-overview [data-weekday] { cursor:pointer; }
 .weekday-selected-col { fill:#ffffff14; }
+.chart .weekday-value { fill:white; font-size:10px; font-weight:700; }
 .weekday-axis { width:28px; display:flex; flex-direction:column; justify-content:space-between; padding:14px 0 8px 3px; color:#a7a7aa; font-size:10px; }
 .weekday-legend { display:flex; gap:12px; }
 .weekday-key { font-style:normal; }

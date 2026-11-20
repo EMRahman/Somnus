@@ -44,6 +44,9 @@ final class AppNavigation: ObservableObject {
         case .monthlyDuration:
             selectedTab = .trends
             trendsPeriodRequest = .monthly
+        case .yearly:
+            selectedTab = .trends
+            trendsPeriodRequest = .yearly
         }
         #endif
     }

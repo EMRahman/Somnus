@@ -10,6 +10,7 @@ enum ScreenshotSupport {
         case sleepDebt = "debt"
         case sleepDuration = "duration"
         case monthlyDuration = "monthly-duration"
+        case yearly
     }
 
     private static let modeArgument = "-screenshotMode"
