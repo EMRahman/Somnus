@@ -74,6 +74,12 @@ async function main() {
       assert.ok(debtSummary.includes(`${Math.abs(summary.targetRunningBalance).toFixed(1)}h behind`), `${period} balance sign or total`);
       await chart.locator('[data-point]').first().click();
       assert.ok((await app.locator('#sleep-debt .chart-selection').innerText()).includes(`${summary.debtBuckets[0].hours.toFixed(1)}h`));
+      await app.locator('#sleep-debt .chart-selection-clear').click();
+      assert.equal(await app.locator('#sleep-debt .chart-selection').count(), 0);
+      await chart.locator('[data-point]').first().click();
+      assert.equal(await app.locator('#sleep-debt .chart-selection').count(), 1);
+      await chart.locator('[data-point]').first().click();
+      assert.equal(await app.locator('#sleep-debt .chart-selection').count(), 0);
       assert.ok(!(await app.locator('#app-content').innerHTML()).match(/NaN|undefined/), `${period} invalid output`);
       await app.locator('.chart').last().scrollIntoViewIfNeeded();
     }
@@ -91,7 +97,15 @@ async function main() {
       assert.equal(await app.locator('button[data-weekday="1"]').getAttribute('aria-pressed'), 'true');
       assert.ok(!(await app.locator('#sleep-debt').innerHTML()).match(/NaN|undefined/));
       if (period === '1M') assert.equal(await app.locator('.weekday-details span').count(), group.nights.length);
-      else assert.equal(await app.locator('.weekday-history [role="listitem"]').count(), group.history.length);
+      else {
+        assert.equal(await app.locator('.weekday-history [role="listitem"]').count(), group.history.length);
+        if (period === '1Y') {
+          await app.locator('.weekday-history button').first().click();
+          assert.ok((await app.locator('#sleep-debt .chart-selection').innerText()).includes('recorded'));
+          await app.locator('#sleep-debt .chart-selection-clear').click();
+          assert.equal(await app.locator('#sleep-debt .chart-selection').count(), 0);
+        }
+      }
       await app.getByRole('button', { name: 'By time' }).click();
     }
 
@@ -117,6 +131,10 @@ async function main() {
     assert.ok(await app.locator('dialog').isVisible());
     await app.locator('#dialog-done').press('Escape');
     assert.ok(!(await app.locator('dialog').isVisible()));
+    assert.ok((await app.locator('#app-content').innerText()).includes('1.2.0 · Web demo'));
+    await app.getByRole('button', { name: 'Understanding Sleep Debt', exact: true }).click();
+    assert.ok(!(await app.locator('#dialog-body').innerText()).includes('purple line'));
+    await app.locator('#dialog-done').press('Escape');
     assert.equal(await app.getByRole('link', { name: 'Sleep Foundation Resources' }).getAttribute('href'), 'https://www.sleepfoundation.org');
 
     await sliders.nth(1).focus();

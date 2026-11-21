@@ -2,6 +2,8 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
+    @AppStorage("sleepGoalHours") private var sleepGoalHours = SleepAnalysisEngine.idealSleepHours
+    @AppStorage("sleepGoalMinimum") private var sleepGoalMinimum = SleepAnalysisEngine.minimumSleepHours
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var navigation: AppNavigation
     private let appReview = AppReview()
@@ -65,6 +67,15 @@ struct DashboardView: View {
             }
             .task {
                 await viewModel.loadData()
+            }
+            .onAppear {
+                viewModel.syncGoalsIfNeeded()
+            }
+            .onChange(of: sleepGoalHours) { _, _ in
+                viewModel.syncGoalsIfNeeded()
+            }
+            .onChange(of: sleepGoalMinimum) { _, _ in
+                viewModel.syncGoalsIfNeeded()
             }
             .onChange(of: isShowingSleepData, initial: true) { _, isShowing in
                 if isShowing { appReview.recordSleepCheck() }
@@ -130,6 +141,7 @@ struct DashboardView: View {
         }
         .buttonStyle(.plain)
         .accessibilityHint("Opens the Sleep Debt breakdown in Trends")
+        .accessibilityIdentifier("dashboard-debt-card")
     }
 
     /// Tapping the stage breakdown deep-links to the Sleep Duration chart in Trends (weekly).

@@ -458,9 +458,10 @@ struct SleepAnalysisEngine {
 
     /// Detects if there's a weekend vs weekday sleep pattern difference.
     static func weekendEffect(from records: [SleepRecord]) -> (weekdayAvg: Double, weekendAvg: Double)? {
+        let nights = mergedNightlyRecords(from: records)
         let calendar = Calendar.current
-        let weekday = records.filter { !calendar.isDateInWeekend($0.date) }
-        let weekend = records.filter { calendar.isDateInWeekend($0.date) }
+        let weekday = nights.filter { !calendar.isDateInWeekend($0.date) }
+        let weekend = nights.filter { calendar.isDateInWeekend($0.date) }
 
         guard !weekday.isEmpty, !weekend.isEmpty else { return nil }
 
@@ -491,14 +492,14 @@ struct SleepAnalysisEngine {
     /// card elsewhere in the app: weekend/social-jet-lag gap, frequent late bedtimes, and which
     /// specific stage (deep or REM) is running low. Requires at least 5 tracked nights, same
     /// threshold used for trend detection, so a single day's data doesn't trigger noisy flags.
+    /// Merges fragmented sessions per night and drops stage-less "in bed only" records so an
+    /// interrupted night doesn't count as multiple short or late-bedtime nights.
     static func detectPatterns(from records: [SleepRecord]) -> [SleepPatternFlag] {
-        // Stage-less "in bed only" records (0h asleep, common before Apple Watch sleep stages
-        // arrived in ~2022) would otherwise skew every average/ratio below.
-        let records = records.filter { $0.totalSleepHours > 0 }
-        guard records.count >= 5 else { return [] }
+        let nights = mergedNightlyRecords(from: records)
+        guard nights.count >= 5 else { return [] }
         var flags: [SleepPatternFlag] = []
 
-        if let effect = weekendEffect(from: records) {
+        if let effect = weekendEffect(from: nights) {
             let diff = effect.weekendAvg - effect.weekdayAvg
             if diff > 1.5 {
                 flags.append(SleepPatternFlag(
@@ -510,31 +511,31 @@ struct SleepAnalysisEngine {
         }
 
         let calendar = Calendar.current
-        let lateNights = records.filter { record in
+        let lateNights = nights.filter { record in
             let hour = calendar.component(.hour, from: record.bedtime)
             return hour >= 0 && hour < 5
         }
-        if lateNights.count > records.count / 3 {
+        if lateNights.count > nights.count / 3 {
             flags.append(SleepPatternFlag(
                 title: "Late Bedtimes",
-                message: "\(lateNights.count)/\(records.count) nights with bedtime after midnight",
+                message: "\(lateNights.count)/\(nights.count) nights with bedtime after midnight",
                 systemImage: "moon.zzz.fill"
             ))
         }
 
-        let recordsWithStages = records.filter { !$0.stages.isEmpty }
-        if !recordsWithStages.isEmpty {
-            let avgDeepPercent = recordsWithStages.map { record -> Double in
+        let nightsWithStages = nights.filter { !$0.stages.isEmpty }
+        if !nightsWithStages.isEmpty {
+            let avgDeepPercent = nightsWithStages.map { record -> Double in
                 let total = record.totalSleepDuration
                 guard total > 0 else { return 0 }
                 return record.deepSleepDuration / total
-            }.reduce(0, +) / Double(recordsWithStages.count)
+            }.reduce(0, +) / Double(nightsWithStages.count)
 
-            let avgREMPercent = recordsWithStages.map { record -> Double in
+            let avgREMPercent = nightsWithStages.map { record -> Double in
                 let total = record.totalSleepDuration
                 guard total > 0 else { return 0 }
                 return record.remSleepDuration / total
-            }.reduce(0, +) / Double(recordsWithStages.count)
+            }.reduce(0, +) / Double(nightsWithStages.count)
 
             if avgDeepPercent < 0.10 {
                 flags.append(SleepPatternFlag(
