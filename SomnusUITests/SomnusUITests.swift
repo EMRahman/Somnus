@@ -125,6 +125,77 @@ final class SomnusUITests: XCTestCase {
         XCTAssertFalse(durationSummary.exists)
     }
 
+    func testWeekdayHistorySelection() {
+        relaunchForScreenshot(destination: "yearly", extraArguments: ["-screenshotWeekdayDebt"])
+
+        let monday = app.buttons["weekday-debt-2"]
+        XCTAssertTrue(monday.waitForExistence(timeout: 5))
+        monday.tap()
+
+        let historyChart = app.descendants(matching: .any)["weekday-debt-history"].firstMatch
+        XCTAssertTrue(historyChart.waitForExistence(timeout: 5))
+        scrollIntoView(historyChart)
+        historyChart.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+
+        let historySummary = app.descendants(matching: .any)["weekday-debt-history-selection-summary"].firstMatch
+        XCTAssertTrue(historySummary.waitForExistence(timeout: 3))
+        XCTAssertTrue(historySummary.label.contains("recorded"))
+
+        app.buttons["Clear selection"].firstMatch.tap()
+        XCTAssertFalse(historySummary.exists)
+
+        let fiveYears = app.buttons["5Y"]
+        scrollIntoView(fiveYears)
+        fiveYears.tap()
+
+        XCTAssertTrue(historyChart.waitForExistence(timeout: 5))
+        scrollIntoView(historyChart)
+        historyChart.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+
+        XCTAssertTrue(historySummary.waitForExistence(timeout: 3))
+        XCTAssertTrue(historySummary.label.contains("recorded"))
+        app.buttons["Clear selection"].firstMatch.tap()
+        XCTAssertFalse(historySummary.exists)
+    }
+
+    func testSettingsGoalChangesUpdateDashboardAndTrends() {
+        relaunchForScreenshot(destination: "dashboard")
+
+        let debtCard = app.descendants(matching: .any)["dashboard-debt-card"].firstMatch
+        XCTAssertTrue(debtCard.waitForExistence(timeout: 5))
+        let initialDebtLabel = debtCard.label
+        XCTAssertTrue(initialDebtLabel.contains("debt"))
+
+        app.tabBars.buttons["Trends"].tap()
+        let trendsSummary = app.descendants(matching: .any)["trends-debt-summary"].firstMatch
+        XCTAssertTrue(trendsSummary.waitForExistence(timeout: 5))
+        XCTAssertTrue(trendsSummary.label.contains("behind goal"))
+
+        app.tabBars.buttons["Settings"].tap()
+        let targetSlider = app.sliders["target-sleep-slider"].firstMatch
+        XCTAssertTrue(targetSlider.waitForExistence(timeout: 5))
+        defer {
+            app.tabBars.buttons["Settings"].tap()
+            if targetSlider.waitForExistence(timeout: 3) {
+                targetSlider.adjust(toNormalizedSliderPosition: 0.5)
+            }
+        }
+
+        targetSlider.adjust(toNormalizedSliderPosition: 0.0)
+        XCTAssertTrue(
+            app.staticTexts["6.0 hours"].waitForExistence(timeout: 3)
+                || app.staticTexts["6.5 hours"].exists
+        )
+
+        app.tabBars.buttons["Trends"].tap()
+        XCTAssertTrue(trendsSummary.waitForExistence(timeout: 3))
+        XCTAssertTrue(trendsSummary.label.contains("ahead"))
+
+        app.tabBars.buttons["Dashboard"].tap()
+        XCTAssertTrue(debtCard.waitForExistence(timeout: 3))
+        XCTAssertTrue(debtCard.label.contains("No debt"))
+    }
+
     private func scrollIntoView(_ element: XCUIElement) {
         let window = app.windows.firstMatch
         let visibleTop = window.frame.minY + window.frame.height * 0.16

@@ -20,6 +20,8 @@ final class TrendsViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let healthKitManager = HealthKitManager.shared
+    private var appliedTargetHours = SleepAnalysisEngine.targetSleepHours
+    private var appliedMinimumHours = SleepAnalysisEngine.minimumAcceptableHours
 
     // MARK: - Computed Properties
 
@@ -142,6 +144,19 @@ final class TrendsViewModel: ObservableObject {
         await loadData()
     }
 
+    /// Recomputes goal-dependent debt, weekday, and target-compliance state from already-loaded
+    /// records when Settings goals change, without re-querying HealthKit.
+    func syncGoalsIfNeeded() {
+        let target = SleepAnalysisEngine.targetSleepHours
+        let minimum = SleepAnalysisEngine.minimumAcceptableHours
+        guard target != appliedTargetHours || minimum != appliedMinimumHours else { return }
+        appliedTargetHours = target
+        appliedMinimumHours = minimum
+        guard !records.isEmpty else { return }
+        updateChartData()
+        objectWillChange.send()
+    }
+
     // MARK: - Chart Data
 
     private func updateChartData() {
@@ -150,6 +165,8 @@ final class TrendsViewModel: ObservableObject {
         // and would otherwise register as a full night of phantom debt.
         let tracked = records.filter { $0.totalSleepHours > 0 }
         let target = SleepAnalysisEngine.targetSleepHours
+        appliedTargetHours = target
+        appliedMinimumHours = SleepAnalysisEngine.minimumAcceptableHours
 
         let range = selectedPeriod.dateRange
         weekdayDebtData = SleepAnalysisEngine.weekdayDebt(

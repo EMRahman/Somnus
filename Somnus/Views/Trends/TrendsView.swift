@@ -4,6 +4,8 @@ import StoreKit
 
 struct TrendsView: View {
     @StateObject private var viewModel = TrendsViewModel()
+    @AppStorage("sleepGoalHours") private var sleepGoalHours = SleepAnalysisEngine.idealSleepHours
+    @AppStorage("sleepGoalMinimum") private var sleepGoalMinimum = SleepAnalysisEngine.minimumSleepHours
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.requestReview) private var requestReview
     @EnvironmentObject private var navigation: AppNavigation
@@ -162,6 +164,15 @@ struct TrendsView: View {
                     if let selectedDurationDate, !dates.contains(selectedDurationDate) {
                         self.selectedDurationDate = nil
                     }
+                }
+                .onAppear {
+                    viewModel.syncGoalsIfNeeded()
+                }
+                .onChange(of: sleepGoalHours) { _, _ in
+                    viewModel.syncGoalsIfNeeded()
+                }
+                .onChange(of: sleepGoalMinimum) { _, _ in
+                    viewModel.syncGoalsIfNeeded()
                 }
             }
         }
@@ -525,6 +536,7 @@ struct TrendsView: View {
                     .font(.subheadline)
                     .fontWeight(viewModel.debtSeverity == .normal ? .regular : .semibold)
                     .foregroundStyle(severityColor(viewModel.debtSeverity))
+                    .accessibilityIdentifier("trends-debt-summary")
             }
 
             if supportsWeekdayDebt {

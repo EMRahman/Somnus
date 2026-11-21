@@ -15,6 +15,8 @@ final class DashboardViewModel: ObservableObject {
 
     private let healthKitManager = HealthKitManager.shared
     private var isObservingHealthKit = false
+    private var appliedTargetHours = SleepAnalysisEngine.targetSleepHours
+    private var appliedMinimumHours = SleepAnalysisEngine.minimumAcceptableHours
 
     // MARK: - Computed Properties
 
@@ -80,6 +82,8 @@ final class DashboardViewModel: ObservableObject {
 
         #if DEBUG
         if ScreenshotSupport.isEnabled {
+            appliedTargetHours = SleepAnalysisEngine.targetSleepHours
+            appliedMinimumHours = SleepAnalysisEngine.minimumAcceptableHours
             let records = ScreenshotSupport.records(for: .weekly)
             latestRecord = records.last
             weeklyRecords = records
@@ -111,6 +115,8 @@ final class DashboardViewModel: ObservableObject {
             weeklyRecords = try await weeklyFetch
 
             // Compute metrics and score
+            appliedTargetHours = SleepAnalysisEngine.targetSleepHours
+            appliedMinimumHours = SleepAnalysisEngine.minimumAcceptableHours
             let metrics = SleepAnalysisEngine.computeMetrics(records: weeklyRecords, period: .weekly)
             weeklyMetrics = metrics
             sleepScore = metrics.score
@@ -124,6 +130,17 @@ final class DashboardViewModel: ObservableObject {
 
     func refresh() async {
         await loadData()
+    }
+
+    /// Refreshes goal-dependent Dashboard text and severity when Settings goals change,
+    /// without re-querying HealthKit.
+    func syncGoalsIfNeeded() {
+        let target = SleepAnalysisEngine.targetSleepHours
+        let minimum = SleepAnalysisEngine.minimumAcceptableHours
+        guard target != appliedTargetHours || minimum != appliedMinimumHours else { return }
+        appliedTargetHours = target
+        appliedMinimumHours = minimum
+        objectWillChange.send()
     }
 
     /// Reloads automatically when HealthKit reports new sleep samples (e.g. after the watch

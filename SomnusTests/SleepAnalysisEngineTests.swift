@@ -1,4 +1,5 @@
 import XCTest
+import Combine
 @testable import Somnus
 
 final class SleepAnalysisEngineTests: XCTestCase {
@@ -312,5 +313,130 @@ final class SleepAnalysisEngineTests: XCTestCase {
         XCTAssertEqual(point.coreMinutes, 20, accuracy: 0.001)
         XCTAssertEqual(point.remMinutes, 13, accuracy: 0.001)
         XCTAssertEqual(point.awakeMinutes, 9, accuracy: 0.001)
+    }
+
+    // MARK: - Pattern Detection
+
+    func testDetectPatternsMergesFragmentedNights() {
+        // 4 unique nights split across 6 fragments should still be below the 5-night threshold.
+        let fourFragmentedNights =
+            fragmentedNight(night(daysAgo: 4)) +
+            fragmentedNight(night(daysAgo: 3)) +
+            [
+                record(night: night(daysAgo: 2), bedHour: 23, sleepHours: 7.5),
+                record(night: night(daysAgo: 1), bedHour: 23, sleepHours: 7.6)
+            ]
+        XCTAssertTrue(SleepAnalysisEngine.detectPatterns(from: fourFragmentedNights).isEmpty)
+
+        // Pick 5 consecutive weekdays (Mon-Fri, Nov 2-6 2026) and 2 weekend nights (Sat-Sun, Nov 7-8 2026)
+        // where 3 weekday nights are fragmented (23:00 + 03:00 = 7.3h total).
+        // Without merging, the 3:00 AM fragments would count as 3/10+ late nights and drag weekday avg down
+        // enough to risk Social Jet Lag; merged, every night started at 23:00 and averaged 7.4h vs 7.5h.
+        let mon = calendar.date(from: DateComponents(year: 2026, month: 11, day: 2))!
+        let tue = calendar.date(from: DateComponents(year: 2026, month: 11, day: 3))!
+        let wed = calendar.date(from: DateComponents(year: 2026, month: 11, day: 4))!
+        let thu = calendar.date(from: DateComponents(year: 2026, month: 11, day: 5))!
+        let fri = calendar.date(from: DateComponents(year: 2026, month: 11, day: 6))!
+        let sat = calendar.date(from: DateComponents(year: 2026, month: 11, day: 7))!
+        let sun = calendar.date(from: DateComponents(year: 2026, month: 11, day: 8))!
+
+        let weekWithFragments =
+            fragmentedNight(mon) +
+            fragmentedNight(tue) +
+            fragmentedNight(wed) +
+            [
+                record(night: thu, bedHour: 23, sleepHours: 7.5),
+                record(night: fri, bedHour: 23, sleepHours: 7.6),
+                record(night: sat, bedHour: 23, sleepHours: 7.5),
+                record(night: sun, bedHour: 23, sleepHours: 7.5)
+            ]
+
+        let flags = SleepAnalysisEngine.detectPatterns(from: weekWithFragments)
+        XCTAssertFalse(flags.contains { $0.title == "Late Bedtimes" })
+        XCTAssertFalse(flags.contains { $0.title == "Social Jet Lag" })
+    }
+
+    func testWeekendEffectMergesFragmentsAndDropsPhantoms() {
+        let mon = calendar.date(from: DateComponents(year: 2026, month: 11, day: 2))!
+        let tue = calendar.date(from: DateComponents(year: 2026, month: 11, day: 3))!
+        let sat = calendar.date(from: DateComponents(year: 2026, month: 11, day: 7))!
+
+        let records = fragmentedNight(mon) + [
+            inBedOnlyRecord(night: tue),
+            record(night: sat, bedHour: 23, sleepHours: 8.3)
+        ]
+
+        let effect = SleepAnalysisEngine.weekendEffect(from: records)
+        XCTAssertNotNil(effect)
+        XCTAssertEqual(effect?.weekdayAvg ?? 0, 7.3, accuracy: 0.001)
+        XCTAssertEqual(effect?.weekendAvg ?? 0, 8.3, accuracy: 0.001)
+    }
+
+    // MARK: - Locale Clock Formatting
+
+    func testClockAndTimeFormattingRespectsLocale() {
+        let us = Locale(identifier: "en_US")
+        let gb = Locale(identifier: "en_GB")
+        let fr = Locale(identifier: "fr_FR")
+
+        XCTAssertEqual(SleepTimelineChart.clockLabel(forPlotted: -21, locale: us), "9PM")
+        XCTAssertEqual(SleepTimelineChart.clockLabel(forPlotted: -24, locale: us), "12AM")
+        XCTAssertEqual(SleepTimelineChart.clockLabel(forPlotted: -30, locale: us), "6AM")
+
+        XCTAssertEqual(SleepTimelineChart.clockLabel(forPlotted: -21, locale: gb), "21:00")
+        XCTAssertEqual(SleepTimelineChart.clockLabel(forPlotted: -24, locale: gb), "00:00")
+        XCTAssertEqual(SleepTimelineChart.clockLabel(forPlotted: -30, locale: gb), "06:00")
+
+        XCTAssertEqual(SleepTimelineChart.clockLabel(forPlotted: -21, locale: fr), "21:00")
+
+        let evening = calendar.date(from: DateComponents(year: 2026, month: 11, day: 10, hour: 22, minute: 30))!
+        let usText = evening.timeString(locale: us)
+        let gbText = evening.timeString(locale: gb)
+        XCTAssertTrue(usText.contains("10:30"))
+        XCTAssertTrue(gbText.contains("22:30"))
+    }
+
+    // MARK: - Live Goal Synchronization
+
+    @MainActor
+    func testViewModelsRecalculateForGoalChanges() {
+        let trendsVM = TrendsViewModel.preview
+        let dashboardVM = DashboardViewModel.preview
+
+        var trendsChanges = 0
+        var dashboardChanges = 0
+        let trendsSub = trendsVM.objectWillChange.sink { _ in trendsChanges += 1 }
+        let dashboardSub = dashboardVM.objectWillChange.sink { _ in dashboardChanges += 1 }
+        defer {
+            trendsSub.cancel()
+            dashboardSub.cancel()
+        }
+
+        XCTAssertNotEqual(dashboardVM.sleepDebtText, "No debt")
+        let initialTargetRate = trendsVM.targetRateText
+
+        // Lower target below every preview night's generated stage duration so all shortfalls clear.
+        defaults.set(4.0, forKey: "sleepGoalHours")
+        trendsVM.syncGoalsIfNeeded()
+        dashboardVM.syncGoalsIfNeeded()
+
+        XCTAssertGreaterThan(trendsChanges, 0)
+        XCTAssertEqual(dashboardChanges, 1)
+        let changesAfterTarget = trendsChanges
+        XCTAssertTrue(trendsVM.runningBalanceText.contains("ahead"))
+        XCTAssertTrue(trendsVM.debtChartData.allSatisfy { $0.hours < 0.01 })
+        XCTAssertTrue(trendsVM.cumulativeDebtData.allSatisfy { $0.hours < 0.01 })
+        XCTAssertFalse(trendsVM.weekdayDebtData.isEmpty)
+        XCTAssertEqual(dashboardVM.sleepDebtText, "No debt")
+
+        defaults.set(9.0, forKey: "sleepGoalMinimum")
+        trendsVM.syncGoalsIfNeeded()
+        dashboardVM.syncGoalsIfNeeded()
+
+        XCTAssertGreaterThan(trendsChanges, changesAfterTarget)
+        XCTAssertEqual(dashboardChanges, 2)
+        XCTAssertNotEqual(trendsVM.targetRateText, initialTargetRate)
+        XCTAssertEqual(trendsVM.targetRateText, "0%")
+        XCTAssertEqual(dashboardVM.targetComplianceText, "0/7 nights")
     }
 }

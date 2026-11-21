@@ -6,6 +6,7 @@ import Charts
 /// down to wake, coloured by sleep stage and labelled with the hours slept.
 struct SleepTimelineChart: View {
     let nights: [NightTimelinePoint]
+    @Environment(\.locale) private var locale
     @State private var selectedNightDate: Date?
 
     /// Stages shown in the legend, in the order they typically appear through the night.
@@ -72,7 +73,7 @@ struct SleepTimelineChart: View {
                     AxisGridLine()
                     AxisValueLabel {
                         if let plotted = value.as(Double.self) {
-                            Text(clockLabel(plotted))
+                            Text(Self.clockLabel(forPlotted: plotted, locale: locale))
                                 .font(.caption2)
                         }
                     }
@@ -111,7 +112,7 @@ struct SleepTimelineChart: View {
             accessibilityIdentifier: "timeline-selection-summary",
             onClear: { selectedNightDate = nil }
         ) {
-            Text("\(hoursText(night.sleepHours)) asleep · \(night.bedtime.timeString) – \(night.wakeTime.timeString)")
+            Text("\(hoursText(night.sleepHours)) asleep · \(night.bedtime.timeString(locale: locale)) – \(night.wakeTime.timeString(locale: locale))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -194,13 +195,32 @@ struct SleepTimelineChart: View {
             .map { Double(-$0) }
     }
 
-    /// Formats a plotted value back into a clock label, e.g. "9PM", "12AM", "6AM".
-    private func clockLabel(_ plotted: Double) -> String {
+    /// Formats a plotted value back into a clock label, respecting 12-hour vs 24-hour locale
+    /// preferences (e.g., "9PM" / "12AM" in 12-hour locales, "21:00" / "00:00" in 24-hour locales).
+    static func clockLabel(forPlotted plotted: Double, locale: Locale = .autoupdatingCurrent) -> String {
         let raw = Int((-plotted).rounded())
         let hour24 = ((raw % 24) + 24) % 24
+        if !uses12HourClock(locale: locale) {
+            return String(format: "%02d:00", hour24)
+        }
         let hour12 = hour24 % 12 == 0 ? 12 : hour24 % 12
         let suffix = hour24 < 12 ? "AM" : "PM"
         return "\(hour12)\(suffix)"
+    }
+
+    private static func uses12HourClock(locale: Locale) -> Bool {
+        guard let format = DateFormatter.dateFormat(fromTemplate: "j", options: 0, locale: locale) else {
+            return true
+        }
+        var inQuotes = false
+        for char in format {
+            if char == "'" {
+                inQuotes.toggle()
+            } else if !inQuotes && char == "a" {
+                return true
+            }
+        }
+        return false
     }
 
     private func hoursText(_ hours: Double) -> String {

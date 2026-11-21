@@ -5,6 +5,7 @@ struct WeekdayDebtChart: View {
     let summaries: [WeekdayDebtSummary]
     let period: TimePeriod
     @State private var selectedWeekday = 2
+    @State private var selectedDetailDate: Date?
 
     private var isMonthly: Bool { period == .monthly }
     private var selected: WeekdayDebtSummary? {
@@ -14,6 +15,10 @@ struct WeekdayDebtChart: View {
     private var detailBuckets: [WeekdayDebtBucket] {
         guard let selected else { return [] }
         return SleepAnalysisEngine.weekdayDebtBuckets(for: selected, component: detailComponent)
+    }
+    private var selectedDetailBucket: WeekdayDebtBucket? {
+        guard let selectedDetailDate else { return nil }
+        return detailBuckets.first { $0.date == selectedDetailDate }
     }
     private var yMaximum: Double {
         let hours = isMonthly
@@ -88,6 +93,17 @@ struct WeekdayDebtChart: View {
             Text("Nights are labelled by their evening: Monday night includes Tuesday morning.\(isMonthly ? " Bars run oldest to newest within each weekday." : " Averages include recorded nights with no shortfall.")")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+        }
+        .onChange(of: period) { _, _ in
+            selectedDetailDate = nil
+        }
+        .onChange(of: selectedWeekday) { _, _ in
+            selectedDetailDate = nil
+        }
+        .onChange(of: detailBuckets.map(\.date)) { _, dates in
+            if let selectedDetailDate, !dates.contains(selectedDetailDate) {
+                self.selectedDetailDate = nil
+            }
         }
     }
 
@@ -242,19 +258,46 @@ struct WeekdayDebtChart: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(period == .yearly ? "Monthly averages" : "Yearly averages")
                 .font(.caption.weight(.medium))
-            Chart(detailBuckets) { bucket in
-                if let hours = bucket.hours, hours > 0 {
-                    BarMark(x: .value("Period", bucket.date, unit: detailComponent), y: .value("Average shortfall", hours))
-                        .foregroundStyle(Color.shortfallColor(hours: hours))
-                        .cornerRadius(3)
-                        .accessibilityLabel(bucket.date.formatted(period == .yearly ? .dateTime.month(.wide).year() : .dateTime.year()))
-                        .accessibilityValue(String(format: "%.1f hours average, %d recorded nights", hours, bucket.recordedCount))
-                } else {
-                    PointMark(x: .value("Period", bucket.date, unit: detailComponent), y: .value("Average shortfall", 0))
-                        .symbol(bucket.hours == nil ? .cross : .circle)
-                        .foregroundStyle(bucket.hours == nil ? Color.secondary : Color.shortfallColor(hours: 0))
-                        .accessibilityLabel(bucket.date.formatted(.dateTime.month().year()))
-                        .accessibilityValue(bucket.hours == nil ? "No data" : "No shortfall")
+
+            if let bucket = selectedDetailBucket {
+                detailSelectionSummary(bucket)
+            }
+
+            Chart {
+                if let bucket = selectedDetailBucket {
+                    RuleMark(x: .value("Selected", bucket.date, unit: detailComponent))
+                        .foregroundStyle(Color.secondary.opacity(0.35))
+                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                        .accessibilityHidden(true)
+                }
+
+                ForEach(detailBuckets) { bucket in
+                    let isSelected = selectedDetailBucket == nil || bucket.date == selectedDetailBucket?.date
+                    let label = SleepAnalysisEngine.bucketLabel(for: bucket.date, period: period)
+
+                    if let hours = bucket.hours, hours > 0 {
+                        BarMark(x: .value("Period", bucket.date, unit: detailComponent), y: .value("Average shortfall", hours))
+                            .foregroundStyle(Color.shortfallColor(hours: hours))
+                            .opacity(isSelected ? 1.0 : 0.45)
+                            .cornerRadius(3)
+                            .annotation(position: .top, spacing: 2) {
+                                if bucket.date == selectedDetailBucket?.date {
+                                    Text(String(format: "%.1fh", hours))
+                                        .font(.caption2)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.primary)
+                                }
+                            }
+                            .accessibilityLabel(label)
+                            .accessibilityValue(String(format: "%.1f hours average, %d recorded nights", hours, bucket.recordedCount))
+                    } else {
+                        PointMark(x: .value("Period", bucket.date, unit: detailComponent), y: .value("Average shortfall", 0))
+                            .symbol(bucket.hours == nil ? .cross : .circle)
+                            .foregroundStyle(bucket.hours == nil ? Color.secondary : Color.shortfallColor(hours: 0))
+                            .opacity(isSelected ? 1.0 : 0.45)
+                            .accessibilityLabel(label)
+                            .accessibilityValue(bucket.hours == nil ? "No data" : "No shortfall")
+                    }
                 }
             }
             .chartYScale(domain: 0...max(1, ((detailBuckets.compactMap(\.hours).max() ?? 0) * 1.15).rounded(.up)))
@@ -264,8 +307,39 @@ struct WeekdayDebtChart: View {
                     AxisValueLabel(format: period == .yearly ? .dateTime.month(.abbreviated).year(.twoDigits) : .dateTime.year())
                 }
             }
+            .chartOverlay { proxy in
+                ChartDateSelectionOverlay(
+                    proxy: proxy,
+                    dates: detailBuckets.map(\.date),
+                    unit: detailComponent,
+                    selectedDate: $selectedDetailDate
+                )
+            }
             .frame(height: 150)
             .accessibilityIdentifier("weekday-debt-history")
+        }
+    }
+
+    private func detailSelectionSummary(_ bucket: WeekdayDebtBucket) -> some View {
+        ChartSelectionHeader(
+            title: SleepAnalysisEngine.bucketLabel(for: bucket.date, period: period),
+            accessibilityIdentifier: "weekday-debt-history-selection-summary",
+            onClear: { selectedDetailDate = nil }
+        ) {
+            if let hours = bucket.hours {
+                let nightWord = bucket.recordedCount == 1 ? "night" : "nights"
+                let detail = hours < 0.05
+                    ? "No shortfall · \(bucket.recordedCount) recorded \(nightWord)"
+                    : String(format: "%.1fh average shortfall · %d recorded %@", hours, bucket.recordedCount, nightWord)
+                Text(detail)
+                    .font(.caption)
+                    .fontWeight(bucket.severity == .normal ? .regular : .medium)
+                    .foregroundStyle(bucket.severity == .normal ? Color.secondary : Color.shortfallColor(for: bucket.severity))
+            } else {
+                Text("No recorded nights")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 

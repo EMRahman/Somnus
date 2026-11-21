@@ -25,6 +25,7 @@ struct SettingsView: View {
                         }
                         Slider(value: $sleepGoalHours, in: 6...10, step: 0.5)
                             .tint(.purple)
+                            .accessibilityIdentifier("target-sleep-slider")
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
@@ -36,6 +37,7 @@ struct SettingsView: View {
                         }
                         Slider(value: $sleepGoalMinimum, in: 5...9, step: 0.5)
                             .tint(.orange)
+                            .accessibilityIdentifier("minimum-sleep-slider")
                     }
                 } header: {
                     Label("Sleep Goals", systemImage: "target")
