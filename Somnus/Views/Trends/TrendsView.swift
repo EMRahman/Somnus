@@ -8,6 +8,8 @@ struct TrendsView: View {
     @Environment(\.requestReview) private var requestReview
     @EnvironmentObject private var navigation: AppNavigation
     @State private var debtGrouping: DebtGrouping = .time
+    @State private var selectedDebtDate: Date?
+    @State private var selectedDurationDate: Date?
     @State private var isEligibleForReview = false
     @State private var visibleDebtChartOffset: CGFloat?
     private let appReview = AppReview()
@@ -143,6 +145,23 @@ struct TrendsView: View {
                 }
                 .task(id: isWatchingWeeklyDebtChart ? visibleDebtChartOffset : nil) {
                     await requestReviewAfterReadingChart()
+                }
+                .onChange(of: viewModel.selectedPeriod) { _, _ in
+                    selectedDebtDate = nil
+                    selectedDurationDate = nil
+                }
+                .onChange(of: debtGrouping) { _, _ in
+                    selectedDebtDate = nil
+                }
+                .onChange(of: viewModel.debtChartData.map(\.date)) { _, dates in
+                    if let selectedDebtDate, !dates.contains(selectedDebtDate) {
+                        self.selectedDebtDate = nil
+                    }
+                }
+                .onChange(of: viewModel.chartData.map(\.date)) { _, dates in
+                    if let selectedDurationDate, !dates.contains(selectedDurationDate) {
+                        self.selectedDurationDate = nil
+                    }
                 }
             }
         }
@@ -287,70 +306,125 @@ struct TrendsView: View {
         }
     }
 
+    private var selectedDurationPoint: SleepChartDataPoint? {
+        guard let selectedDurationDate else { return nil }
+        return viewModel.chartData.first { $0.date == selectedDurationDate }
+    }
+
     private var averagedDurationChart: some View {
-        Chart {
-            // Goal zone: the user's Minimum Acceptable → Target Sleep band from Settings
-            RectangleMark(
-                yStart: .value("Min", targetBand.lowerBound),
-                yEnd: .value("Max", targetBand.upperBound)
-            )
-            .foregroundStyle(Color.green.opacity(0.1))
+        VStack(alignment: .leading, spacing: 12) {
+            if let point = selectedDurationPoint {
+                durationSelectionSummary(point)
+            }
 
-            // Minimum-acceptable line
-            RuleMark(y: .value("Target", minimumHours))
-                .foregroundStyle(Color.green.opacity(0.5))
-                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
-                .annotation(position: .trailing, alignment: .leading) {
-                    Text(hoursLabel(minimumHours))
-                        .font(.caption2)
-                        .foregroundStyle(.green)
-                }
-
-            // Data bars. Anchor to the domain floor (not 0) so a zoomed axis doesn't let the
-            // bars overflow below the plot and cover the x-axis labels.
-            ForEach(viewModel.chartData) { point in
-                let fitsInline = durationBarVisibleHeight(point.hours) >= durationBarMinHoursForInlineLabel
-                BarMark(
-                    x: .value("Date", point.date, unit: chartUnit),
-                    yStart: .value("Base", durationYDomain.lowerBound),
-                    yEnd: .value("Hours", point.hours),
-                    width: .ratio(0.8)
+            Chart {
+                // Goal zone: the user's Minimum Acceptable → Target Sleep band from Settings
+                RectangleMark(
+                    yStart: .value("Min", targetBand.lowerBound),
+                    yEnd: .value("Max", targetBand.upperBound)
                 )
-                .foregroundStyle(point.hours >= minimumHours ? Color.chartBar : Color.chartBarBelow)
-                .cornerRadius(4)
-                .annotation(position: fitsInline ? .overlay : .top, spacing: 2) {
-                    if showsBarLabels {
-                        Text(durationBarLabel(point.hours))
+                .foregroundStyle(Color.green.opacity(0.1))
+
+                // Minimum-acceptable line
+                RuleMark(y: .value("Target", minimumHours))
+                    .foregroundStyle(Color.green.opacity(0.5))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
+                    .annotation(position: .trailing, alignment: .leading) {
+                        Text(hoursLabel(minimumHours))
                             .font(.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(fitsInline ? .white : .primary)
+                            .foregroundStyle(.green)
+                    }
+
+                if let selectedDurationPoint {
+                    RuleMark(x: .value("Selected", selectedDurationPoint.date, unit: chartUnit))
+                        .foregroundStyle(Color.secondary.opacity(0.35))
+                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                        .accessibilityHidden(true)
+                }
+
+                // Data bars. Anchor to the domain floor (not 0) so a zoomed axis doesn't let the
+                // bars overflow below the plot and cover the x-axis labels.
+                ForEach(viewModel.chartData) { point in
+                    let isSelected = selectedDurationPoint == nil || point.date == selectedDurationPoint?.date
+                    let fitsInline = durationBarVisibleHeight(point.hours) >= durationBarMinHoursForInlineLabel
+                    BarMark(
+                        x: .value("Date", point.date, unit: chartUnit),
+                        yStart: .value("Base", durationYDomain.lowerBound),
+                        yEnd: .value("Hours", point.hours),
+                        width: .ratio(0.8)
+                    )
+                    .foregroundStyle(point.hours >= minimumHours ? Color.chartBar : Color.chartBarBelow)
+                    .opacity(isSelected ? 1.0 : 0.45)
+                    .cornerRadius(4)
+                    .annotation(position: fitsInline ? .overlay : .top, spacing: 2) {
+                        if showsBarLabels || point.date == selectedDurationPoint?.date {
+                            Text(durationBarLabel(point.hours))
+                                .font(.caption2)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(fitsInline ? .white : .primary)
+                        }
                     }
                 }
             }
-        }
-        .chartYScale(domain: durationYDomain)
-        .chartYAxis {
-            AxisMarks(values: .stride(by: 1)) { value in
-                AxisGridLine()
-                AxisValueLabel {
-                    if let hours = value.as(Double.self) {
-                        Text("\(Int(hours))h")
-                            .font(.caption2)
+            .chartYScale(domain: durationYDomain)
+            .chartYAxis {
+                AxisMarks(values: .stride(by: 1)) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let hours = value.as(Double.self) {
+                            Text("\(Int(hours))h")
+                                .font(.caption2)
+                        }
                     }
                 }
             }
-        }
-        .chartXAxis {
-            // Place labels only at (a thinned set of) the actual bar dates. Charts' automatic
-            // date ticks render one-per-interval (e.g. per day across a month), which overruns
-            // the width and collides with the bars; desiredCount isn't honoured for these
-            // unit-binned bars, so we pin the marks ourselves.
-            AxisMarks(values: thinnedDates(viewModel.chartData)) { _ in
-                AxisGridLine()
-                AxisValueLabel(format: chartDateFormat)
+            .chartXAxis {
+                // Place labels only at (a thinned set of) the actual bar dates. Charts' automatic
+                // date ticks render one-per-interval (e.g. per day across a month), which overruns
+                // the width and collides with the bars; desiredCount isn't honoured for these
+                // unit-binned bars, so we pin the marks ourselves.
+                AxisMarks(values: thinnedDates(viewModel.chartData)) { _ in
+                    AxisGridLine()
+                    AxisValueLabel(format: chartDateFormat)
+                }
             }
+            .chartOverlay { proxy in
+                ChartDateSelectionOverlay(
+                    proxy: proxy,
+                    dates: viewModel.chartData.map(\.date),
+                    unit: chartUnit,
+                    selectedDate: $selectedDurationDate
+                )
+            }
+            .frame(height: 220)
+            .accessibilityIdentifier("duration-averaged-chart")
         }
-        .frame(height: 220)
+    }
+
+    private func durationSelectionSummary(_ point: SleepChartDataPoint) -> some View {
+        let avgText = String(format: "%.1fh average", point.hours)
+        let target = SleepAnalysisEngine.targetSleepHours
+        let statusText: String
+        if point.hours >= target {
+            statusText = "meets \(hoursLabel(target)) target"
+        } else if point.hours >= minimumHours {
+            statusText = "meets \(hoursLabel(minimumHours)) minimum"
+        } else {
+            statusText = String(format: "%.1fh below %@ minimum", minimumHours - point.hours, hoursLabel(minimumHours))
+        }
+        let nightWord = point.nightCount == 1 ? "night" : "nights"
+        let belowMin = point.hours < minimumHours
+
+        return ChartSelectionHeader(
+            title: SleepAnalysisEngine.bucketLabel(for: point.date, period: viewModel.selectedPeriod),
+            accessibilityIdentifier: "duration-selection-summary",
+            onClear: { selectedDurationDate = nil }
+        ) {
+            Text("\(avgText) · \(statusText) · \(point.nightCount) recorded \(nightWord)")
+                .font(.caption)
+                .fontWeight(belowMin ? .medium : .regular)
+                .foregroundStyle(belowMin ? Color.orange : Color.secondary)
+        }
     }
 
     /// The user's Minimum Acceptable from Settings — the threshold for the rule mark and
@@ -474,14 +548,41 @@ struct TrendsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
+    private var selectedDebtIndex: Int? {
+        guard let selectedDebtDate else { return nil }
+        return viewModel.debtChartData.firstIndex { $0.date == selectedDebtDate }
+    }
+
+    private var selectedDebtPoint: SleepChartDataPoint? {
+        guard let index = selectedDebtIndex, viewModel.debtChartData.indices.contains(index) else { return nil }
+        return viewModel.debtChartData[index]
+    }
+
+    private var selectedCumulativePoint: SleepChartDataPoint? {
+        guard let index = selectedDebtIndex, viewModel.cumulativeDebtData.indices.contains(index) else { return nil }
+        return viewModel.cumulativeDebtData[index]
+    }
+
     private var chronologicalDebtChart: some View {
         VStack(alignment: .leading, spacing: 16) {
+            if let point = selectedDebtPoint {
+                debtSelectionSummary(point: point, cumulative: selectedCumulativePoint)
+            }
+
             // Nightly debt bars overlaid on the cumulative-debt line. The line is the running
             // total of the bars, so its rise between two days is exactly that day's bar — both
             // share a single hours axis, which makes the correlation read directly.
             Chart {
+                if let selectedDebtPoint {
+                    RuleMark(x: .value("Selected", selectedDebtPoint.date, unit: chartUnit))
+                        .foregroundStyle(Color.secondary.opacity(0.35))
+                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                        .accessibilityHidden(true)
+                }
+
                 // Nightly debt bars
                 ForEach(viewModel.debtChartData) { point in
+                    let isSelected = selectedDebtPoint == nil || point.date == selectedDebtPoint?.date
                     let fitsInline = point.hours >= debtBarMinHoursForInlineLabel
                     // Rated per night, so a week/month/year bucket is coloured by its
                     // average night rather than its (much larger) summed shortfall.
@@ -491,6 +592,7 @@ struct TrendsView: View {
                         y: .value("Nightly debt", point.hours)
                     )
                     .foregroundStyle(Color.shortfallColor(for: severity))
+                    .opacity(isSelected ? 1.0 : 0.45)
                     .cornerRadius(4)
                     .annotation(position: fitsInline ? .overlay : .top, spacing: 2) {
                         if showsBarLabels, let text = debtBarLabel(point.hours) {
@@ -523,8 +625,15 @@ struct TrendsView: View {
                             y: .value("Cumulative debt", point.hours)
                         )
                         .foregroundStyle(Color.shortfallColor(hours: point.hoursPerNight))
-                        .symbolSize(max(cumulativeMarkerSize, 40))
+                        .symbolSize(point.date == selectedDebtPoint?.date ? 60 : max(cumulativeMarkerSize, 40))
                     }
+                } else if let selectedCumulativePoint {
+                    PointMark(
+                        x: .value("Date", selectedCumulativePoint.date, unit: chartUnit),
+                        y: .value("Cumulative debt", selectedCumulativePoint.hours)
+                    )
+                    .foregroundStyle(Color.shortfallColor(hours: selectedCumulativePoint.hoursPerNight))
+                    .symbolSize(60)
                 }
             }
             .chartYScale(domain: 0...cumulativeDebtYMax)
@@ -553,7 +662,16 @@ struct TrendsView: View {
                     }
                 }
             }
+            .chartOverlay { proxy in
+                ChartDateSelectionOverlay(
+                    proxy: proxy,
+                    dates: viewModel.debtChartData.map(\.date),
+                    unit: chartUnit,
+                    selectedDate: $selectedDebtDate
+                )
+            }
             .frame(height: 200)
+            .accessibilityIdentifier("debt-time-chart")
             .background {
                 if isWatchingWeeklyDebtChart {
                     GeometryReader { proxy in
@@ -598,6 +716,37 @@ struct TrendsView: View {
                 }
             }
             .font(.caption2)
+        }
+    }
+
+    private func debtSelectionSummary(
+        point: SleepChartDataPoint,
+        cumulative: SleepChartDataPoint?
+    ) -> some View {
+        let cumulativeHours = cumulative?.hours ?? point.hours
+        let detail: String
+        if isSingleNightDebtBuckets {
+            let shortfall = point.hours < 0.05 ? "No shortfall" : String(format: "%.1fh shortfall", point.hours)
+            let cumulativeText = String(format: "%.1fh cumulative debt", cumulativeHours)
+            detail = "\(shortfall) · \(cumulativeText)"
+        } else {
+            let nightWord = point.nightCount == 1 ? "night" : "nights"
+            detail = String(
+                format: "%.1fh shortfall (%.1fh/night · %d recorded %@) · %.1fh cumulative",
+                point.hours, point.hoursPerNight, point.nightCount, nightWord, cumulativeHours
+            )
+        }
+        let severity = SleepAnalysisEngine.shortfallSeverity(hours: point.hoursPerNight)
+
+        return ChartSelectionHeader(
+            title: SleepAnalysisEngine.bucketLabel(for: point.date, period: viewModel.selectedPeriod),
+            accessibilityIdentifier: "debt-time-selection-summary",
+            onClear: { selectedDebtDate = nil }
+        ) {
+            Text(detail)
+                .font(.caption)
+                .fontWeight(severity == .normal ? .regular : .medium)
+                .foregroundStyle(severity == .normal ? Color.secondary : Color.shortfallColor(for: severity))
         }
     }
 

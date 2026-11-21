@@ -6,15 +6,33 @@ import Charts
 /// down to wake, coloured by sleep stage and labelled with the hours slept.
 struct SleepTimelineChart: View {
     let nights: [NightTimelinePoint]
+    @State private var selectedNightDate: Date?
 
     /// Stages shown in the legend, in the order they typically appear through the night.
     private let legendStages: [SleepStage] = [.deepSleep, .coreSleep, .remSleep, .awake]
 
+    private var selectedNight: NightTimelinePoint? {
+        guard let selectedNightDate else { return nil }
+        return nights.first { Calendar.current.isDate($0.date, inSameDayAs: selectedNightDate) }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if let selectedNight {
+                selectionSummary(selectedNight)
+            }
+
             Chart {
+                if let selectedNight {
+                    RuleMark(x: .value("Selected", selectedNight.date, unit: .day))
+                        .foregroundStyle(Color.secondary.opacity(0.35))
+                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                        .accessibilityHidden(true)
+                }
+
                 // Stage-coloured segments make up the body of each night's bar.
                 ForEach(nights) { night in
+                    let isSelected = selectedNight == nil || night.id == selectedNight?.id
                     ForEach(night.segments) { segment in
                         BarMark(
                             x: .value("Night", night.date, unit: .day),
@@ -23,6 +41,7 @@ struct SleepTimelineChart: View {
                             width: .ratio(0.8)
                         )
                         .foregroundStyle(segment.stage.swiftUIColor)
+                        .opacity(isSelected ? 1.0 : 0.45)
                         .cornerRadius(1)
                     }
                 }
@@ -30,6 +49,7 @@ struct SleepTimelineChart: View {
                 // A clear full-height bar per night carries the centered hours label,
                 // drawn after the segments so the text sits on top.
                 ForEach(nights) { night in
+                    let isSelected = selectedNight == nil || night.id == selectedNight?.id
                     BarMark(
                         x: .value("Night", night.date, unit: .day),
                         yStart: .value("Bedtime", plotValue(night.bedtime)),
@@ -42,6 +62,7 @@ struct SleepTimelineChart: View {
                             .font(.caption2)
                             .fontWeight(.semibold)
                             .foregroundStyle(.white)
+                            .opacity(isSelected ? 1.0 : 0.45)
                     }
                 }
             }
@@ -62,9 +83,51 @@ struct SleepTimelineChart: View {
                     AxisValueLabel(format: .dateTime.weekday(.abbreviated))
                 }
             }
+            .chartOverlay { proxy in
+                ChartDateSelectionOverlay(
+                    proxy: proxy,
+                    dates: nights.map(\.date),
+                    unit: .day,
+                    selectedDate: $selectedNightDate,
+                    sameSelection: { Calendar.current.isDate($0, inSameDayAs: $1) }
+                )
+            }
             .frame(height: 260)
+            .accessibilityIdentifier("sleep-timeline-chart")
 
             legend
+        }
+        .onChange(of: nights.map(\.date)) { _, dates in
+            if let selectedNightDate,
+               !dates.contains(where: { Calendar.current.isDate($0, inSameDayAs: selectedNightDate) }) {
+                self.selectedNightDate = nil
+            }
+        }
+    }
+
+    private func selectionSummary(_ night: NightTimelinePoint) -> some View {
+        ChartSelectionHeader(
+            title: night.date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()),
+            accessibilityIdentifier: "timeline-selection-summary",
+            onClear: { selectedNightDate = nil }
+        ) {
+            Text("\(hoursText(night.sleepHours)) asleep · \(night.bedtime.timeString) – \(night.wakeTime.timeString)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 12) {
+                ForEach(legendStages, id: \.self) { stage in
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(stage.swiftUIColor)
+                            .frame(width: 7, height: 7)
+                            .accessibilityHidden(true)
+                        Text("\(stage.rawValue) \(String(format: "%.0fm", night.minutes(for: stage)))")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
     }
 
