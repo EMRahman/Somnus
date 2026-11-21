@@ -80,6 +80,67 @@ final class SomnusUITests: XCTestCase {
         XCTAssertFalse(app.buttons["By weekday"].exists)
     }
 
+    func testByTimeChartSelection() {
+        relaunchForScreenshot(destination: "debt")
+
+        let debtChart = app.descendants(matching: .any)["debt-time-chart"].firstMatch
+        XCTAssertTrue(debtChart.waitForExistence(timeout: 5))
+        scrollIntoView(debtChart)
+        debtChart.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5)).tap()
+
+        let debtSummary = app.descendants(matching: .any)["debt-time-selection-summary"].firstMatch
+        XCTAssertTrue(debtSummary.waitForExistence(timeout: 3))
+
+        let timelineChart = app.descendants(matching: .any)["sleep-timeline-chart"].firstMatch
+        XCTAssertTrue(timelineChart.waitForExistence(timeout: 5))
+        scrollIntoView(timelineChart)
+        timelineChart.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5)).tap()
+
+        let timelineSummary = app.descendants(matching: .any)["timeline-selection-summary"].firstMatch
+        XCTAssertTrue(timelineSummary.waitForExistence(timeout: 3))
+        XCTAssertTrue(timelineSummary.label.contains("asleep"))
+
+        let yearButton = app.buttons["1Y"]
+        scrollIntoView(yearButton)
+        yearButton.tap()
+
+        XCTAssertTrue(debtChart.waitForExistence(timeout: 5))
+        scrollIntoView(debtChart)
+        debtChart.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(debtSummary.waitForExistence(timeout: 3))
+        XCTAssertTrue(debtSummary.label.contains("recorded"))
+        app.buttons["Clear selection"].firstMatch.tap()
+        XCTAssertFalse(debtSummary.exists)
+
+        let durationChart = app.descendants(matching: .any)["duration-averaged-chart"].firstMatch
+        XCTAssertTrue(durationChart.waitForExistence(timeout: 5))
+        scrollIntoView(durationChart)
+        durationChart.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+
+        let durationSummary = app.descendants(matching: .any)["duration-selection-summary"].firstMatch
+        XCTAssertTrue(durationSummary.waitForExistence(timeout: 3))
+        XCTAssertTrue(durationSummary.label.contains("average"))
+
+        app.buttons["Clear selection"].firstMatch.tap()
+        XCTAssertFalse(durationSummary.exists)
+    }
+
+    private func scrollIntoView(_ element: XCUIElement) {
+        let window = app.windows.firstMatch
+        let visibleTop = window.frame.minY + window.frame.height * 0.16
+        let visibleBottom = window.frame.maxY - window.frame.height * 0.14
+        for _ in 0..<6 {
+            let frame = element.frame
+            if element.isHittable && frame.midY >= visibleTop && frame.midY <= visibleBottom {
+                return
+            }
+            let dy = frame.midY > visibleBottom ? -window.frame.height * 0.35 : window.frame.height * 0.35
+            let start = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            let end = start.withOffset(CGVector(dx: 0, dy: dy))
+            start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.2)
+        }
+    }
+
     /// Captures the full App Store screenshot set (01–05) plus the monthly By time view used by
     /// the marketing website, all from the DEBUG-only synthetic fixture. Skipped unless run with
     /// TEST_RUNNER_SOMNUS_CAPTURE_SCREENSHOTS=1.

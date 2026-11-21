@@ -230,4 +230,87 @@ final class SleepAnalysisEngineTests: XCTestCase {
         XCTAssertEqual(SleepGrade(score: 40), .poor)
         XCTAssertEqual(SleepGrade(score: 39), .veryPoor)
     }
+
+    // MARK: - Chart Selection & Bucket Averages
+
+    func testNearestBucketDateSnapsWithinFullBarSpan() {
+        let nov1 = calendar.date(from: DateComponents(year: 2026, month: 11, day: 1))!
+        let dec1 = calendar.date(from: DateComponents(year: 2026, month: 12, day: 1))!
+        let nov24 = calendar.date(from: DateComponents(year: 2026, month: 11, day: 24))!
+
+        let snapped = SleepAnalysisEngine.nearestBucketDate(
+            to: nov24,
+            in: [nov1, dec1],
+            unit: .month,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(snapped, nov1)
+    }
+
+    func testBucketLabelFormatsPeriods() {
+        let nov10 = calendar.date(from: DateComponents(year: 2026, month: 11, day: 10))!
+
+        let weeklyLabel = SleepAnalysisEngine.bucketLabel(for: nov10, period: .weekly, calendar: calendar)
+        let monthlyLabel = SleepAnalysisEngine.bucketLabel(for: nov10, period: .monthly, calendar: calendar)
+        let yearlyLabel = SleepAnalysisEngine.bucketLabel(for: nov10, period: .yearly, calendar: calendar)
+        let fiveYearLabel = SleepAnalysisEngine.bucketLabel(for: nov10, period: .fiveYears, calendar: calendar)
+
+        XCTAssertFalse(weeklyLabel.isEmpty)
+        XCTAssertTrue(monthlyLabel.contains("–"))
+        XCTAssertFalse(yearlyLabel.isEmpty)
+        XCTAssertFalse(fiveYearLabel.isEmpty)
+        XCTAssertNotEqual(weeklyLabel, yearlyLabel)
+        XCTAssertNotEqual(yearlyLabel, fiveYearLabel)
+    }
+
+    func testAveragedDurationBucketsPopulateNightCountAndIgnorePhantoms() {
+        let nov2 = calendar.date(from: DateComponents(year: 2026, month: 11, day: 2))!
+        let nov3 = calendar.date(from: DateComponents(year: 2026, month: 11, day: 3))!
+        let nov4 = calendar.date(from: DateComponents(year: 2026, month: 11, day: 4))!
+        let dec5 = calendar.date(from: DateComponents(year: 2026, month: 12, day: 5))!
+
+        let records = fragmentedNight(nov2) + [
+            record(night: nov3, bedHour: 23, sleepHours: 7.7),
+            inBedOnlyRecord(night: nov4),
+            record(night: dec5, bedHour: 23, sleepHours: 8.0)
+        ]
+
+        let weekly = SleepAnalysisEngine.weeklyAverages(from: records)
+        let monthly = SleepAnalysisEngine.monthlyAverages(from: records)
+        let yearly = SleepAnalysisEngine.yearlyAverages(from: records)
+
+        XCTAssertEqual(weekly.count, 2)
+        XCTAssertEqual(weekly[0].nightCount, 2)
+        XCTAssertEqual(weekly[0].hours, 7.5, accuracy: 0.001)
+        XCTAssertEqual(weekly[1].nightCount, 1)
+
+        XCTAssertEqual(monthly.count, 2)
+        XCTAssertEqual(monthly.map(\.nightCount), [2, 1])
+
+        XCTAssertEqual(yearly.count, 1)
+        XCTAssertEqual(yearly[0].nightCount, 3)
+        XCTAssertEqual(yearly[0].hours, (7.3 + 7.7 + 8.0) / 3.0, accuracy: 0.001)
+    }
+
+    func testNightTimelinePointStageMinutes() {
+        let base = Date()
+        let point = NightTimelinePoint(
+            date: base,
+            bedtime: base,
+            wakeTime: base.addingTimeInterval(3600),
+            sleepHours: 0.85,
+            segments: [
+                StageSegment(stage: .deepSleep, start: base, end: base.addingTimeInterval(18 * 60)),
+                StageSegment(stage: .coreSleep, start: base.addingTimeInterval(18 * 60), end: base.addingTimeInterval(38 * 60)),
+                StageSegment(stage: .remSleep, start: base.addingTimeInterval(38 * 60), end: base.addingTimeInterval(51 * 60)),
+                StageSegment(stage: .awake, start: base.addingTimeInterval(51 * 60), end: base.addingTimeInterval(60 * 60))
+            ]
+        )
+
+        XCTAssertEqual(point.deepMinutes, 18, accuracy: 0.001)
+        XCTAssertEqual(point.coreMinutes, 20, accuracy: 0.001)
+        XCTAssertEqual(point.remMinutes, 13, accuracy: 0.001)
+        XCTAssertEqual(point.awakeMinutes, 9, accuracy: 0.001)
+    }
 }

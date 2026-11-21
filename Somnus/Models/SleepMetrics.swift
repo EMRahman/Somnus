@@ -272,3 +272,16 @@ struct NightTimelinePoint: Identifiable {
     let sleepHours: Double   // hours asleep (falls back to time in bed when no stage data)
     let segments: [StageSegment]
 }
+
+extension NightTimelinePoint {
+    func minutes(for stage: SleepStage) -> Double {
+        segments
+            .filter { $0.stage == stage }
+            .reduce(0) { $0 + $1.end.timeIntervalSince($1.start) / 60.0 }
+    }
+
+    var deepMinutes: Double { minutes(for: .deepSleep) }
+    var remMinutes: Double { minutes(for: .remSleep) }
+    var coreMinutes: Double { minutes(for: .coreSleep) }
+    var awakeMinutes: Double { minutes(for: .awake) }
+}

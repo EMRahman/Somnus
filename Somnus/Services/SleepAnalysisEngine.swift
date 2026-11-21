@@ -146,10 +146,11 @@ struct SleepAnalysisEngine {
 
     /// Computes chart data points for sleep duration over time.
     static func durationChartData(from records: [SleepRecord]) -> [SleepChartDataPoint] {
+        let nights = mergedNightlyRecords(from: records)
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE"
 
-        return records.map { record in
+        return nights.map { record in
             SleepChartDataPoint(
                 date: record.date,
                 hours: record.totalSleepHours,
@@ -328,8 +329,9 @@ struct SleepAnalysisEngine {
 
     /// Computes weekly averages from a collection of records.
     static func weeklyAverages(from records: [SleepRecord]) -> [SleepChartDataPoint] {
+        let nights = mergedNightlyRecords(from: records)
         let calendar = Calendar.current
-        let grouped = Dictionary(grouping: records) { record in
+        let grouped = Dictionary(grouping: nights) { record in
             calendar.component(.weekOfYear, from: record.date)
         }
 
@@ -347,7 +349,8 @@ struct SleepAnalysisEngine {
             return SleepChartDataPoint(
                 date: weekStart,
                 hours: avgHours,
-                label: formatter.string(from: weekStart)
+                label: formatter.string(from: weekStart),
+                nightCount: weekRecords.count
             )
         }
         .sorted { $0.date < $1.date }
@@ -355,8 +358,9 @@ struct SleepAnalysisEngine {
 
     /// Computes monthly averages from a collection of records.
     static func monthlyAverages(from records: [SleepRecord]) -> [SleepChartDataPoint] {
+        let nights = mergedNightlyRecords(from: records)
         let calendar = Calendar.current
-        let grouped = Dictionary(grouping: records) { record in
+        let grouped = Dictionary(grouping: nights) { record in
             let components = calendar.dateComponents([.year, .month], from: record.date)
             return "\(components.year ?? 0)-\(components.month ?? 0)"
         }
@@ -375,7 +379,8 @@ struct SleepAnalysisEngine {
             return SleepChartDataPoint(
                 date: monthStart,
                 hours: avgHours,
-                label: formatter.string(from: monthStart)
+                label: formatter.string(from: monthStart),
+                nightCount: monthRecords.count
             )
         }
         .sorted { $0.date < $1.date }
@@ -383,8 +388,9 @@ struct SleepAnalysisEngine {
 
     /// Computes yearly averages from a collection of records.
     static func yearlyAverages(from records: [SleepRecord]) -> [SleepChartDataPoint] {
+        let nights = mergedNightlyRecords(from: records)
         let calendar = Calendar.current
-        let grouped = Dictionary(grouping: records) { record in
+        let grouped = Dictionary(grouping: nights) { record in
             calendar.component(.year, from: record.date)
         }
 
@@ -399,10 +405,53 @@ struct SleepAnalysisEngine {
             return SleepChartDataPoint(
                 date: yearStart,
                 hours: avgHours,
-                label: formatter.string(from: yearStart)
+                label: formatter.string(from: yearStart),
+                nightCount: yearRecords.count
             )
         }
         .sorted { $0.date < $1.date }
+    }
+
+    // MARK: - Chart Selection
+
+    /// Finds the bucket start date in `dates` whose calendar interval for `unit` best matches `targetDate`.
+    /// Unit-binned BarMarks span `[start, start + unitDuration)`, so snapping uses the interval midpoint
+    /// rather than the left edge (`start`) to ensure taps on the right half of a bar select that bar.
+    static func nearestBucketDate(
+        to targetDate: Date,
+        in dates: [Date],
+        unit: Calendar.Component,
+        calendar: Calendar = .current
+    ) -> Date? {
+        guard !dates.isEmpty else { return nil }
+        return dates.min { lhs, rhs in
+            let lhsMid = bucketMidpoint(for: lhs, unit: unit, calendar: calendar)
+            let rhsMid = bucketMidpoint(for: rhs, unit: unit, calendar: calendar)
+            return abs(lhsMid.timeIntervalSince(targetDate)) < abs(rhsMid.timeIntervalSince(targetDate))
+        }
+    }
+
+    private static func bucketMidpoint(for date: Date, unit: Calendar.Component, calendar: Calendar) -> Date {
+        guard let interval = calendar.dateInterval(of: unit, for: date) else { return date }
+        return interval.start.addingTimeInterval(interval.duration / 2.0)
+    }
+
+    /// Human-readable title for a selected chart bucket date across time periods.
+    static func bucketLabel(for date: Date, period: TimePeriod, calendar: Calendar = .current) -> String {
+        switch period {
+        case .daily, .weekly:
+            return date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
+        case .monthly:
+            let start = calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? date
+            let end = calendar.date(byAdding: .day, value: 6, to: start) ?? start
+            let startText = start.formatted(.dateTime.day().month(.abbreviated))
+            let endText = end.formatted(.dateTime.day().month(.abbreviated))
+            return "\(startText) – \(endText)"
+        case .yearly:
+            return date.formatted(.dateTime.month(.wide).year())
+        case .fiveYears, .tenYears:
+            return date.formatted(.dateTime.year())
+        }
     }
 
     // MARK: - Pattern Detection
