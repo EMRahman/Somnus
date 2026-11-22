@@ -31,6 +31,10 @@ struct ChartSelectionHeader<Details: View>: View {
 }
 
 /// Interactive tap-to-toggle and long-press-to-scrub date selection overlay for Swift Charts.
+///
+/// Gestures are handled by UIKit recognizers rather than SwiftUI gestures so that a vertical
+/// swipe starting on the chart still scrolls the enclosing `ScrollView`: the long press fails
+/// as soon as the finger moves before the hold completes, handing the touch to the scroll view.
 struct ChartDateSelectionOverlay: View {
     let proxy: ChartProxy
     let dates: [Date]
@@ -40,10 +44,8 @@ struct ChartDateSelectionOverlay: View {
 
     var body: some View {
         GeometryReader { geometry in
-            Rectangle()
-                .fill(.clear)
-                .contentShape(Rectangle())
-                .onTapGesture { location in
+            ChartGestureCatcher(
+                onTap: { location in
                     guard let frame = proxy.plotFrame else { return }
                     let bounds = geometry[frame]
                     guard bounds.contains(location),
@@ -53,25 +55,77 @@ struct ChartDateSelectionOverlay: View {
                     } else {
                         selectedDate = snapped
                     }
+                },
+                onScrub: { location in
+                    guard let frame = proxy.plotFrame else { return }
+                    let bounds = geometry[frame]
+                    let clampedX = min(max(0, location.x - bounds.minX), max(0, bounds.width - 0.5))
+                    if let snapped = snappedDate(atX: clampedX) {
+                        selectedDate = snapped
+                    }
                 }
-                .gesture(
-                    LongPressGesture(minimumDuration: 0.25)
-                        .sequenced(before: DragGesture(minimumDistance: 0))
-                        .onChanged { value in
-                            guard case .second(true, let drag?) = value,
-                                  let frame = proxy.plotFrame else { return }
-                            let bounds = geometry[frame]
-                            let clampedX = min(max(0, drag.location.x - bounds.minX), max(0, bounds.width - 0.5))
-                            if let snapped = snappedDate(atX: clampedX) {
-                                selectedDate = snapped
-                            }
-                        }
-                )
+            )
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
     }
 
     private func snappedDate(atX x: CGFloat) -> Date? {
         guard let rawDate = proxy.value(atX: x, as: Date.self) else { return nil }
         return SleepAnalysisEngine.nearestBucketDate(to: rawDate, in: dates, unit: unit)
+    }
+}
+
+/// Transparent UIKit view that reports taps and long-press scrubs without blocking
+/// the pan gesture of an enclosing scroll view.
+private struct ChartGestureCatcher: UIViewRepresentable {
+    var onTap: (CGPoint) -> Void
+    var onScrub: (CGPoint) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.backgroundColor = .clear
+
+        let longPress = UILongPressGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handleLongPress(_:))
+        )
+        longPress.minimumPressDuration = 0.25
+        longPress.allowableMovement = 10
+
+        let tap = UITapGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handleTap(_:))
+        )
+        tap.require(toFail: longPress)
+
+        view.addGestureRecognizer(longPress)
+        view.addGestureRecognizer(tap)
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        context.coordinator.onTap = onTap
+        context.coordinator.onScrub = onScrub
+    }
+
+    final class Coordinator: NSObject {
+        var onTap: (CGPoint) -> Void = { _ in }
+        var onScrub: (CGPoint) -> Void = { _ in }
+
+        @objc func handleTap(_ recognizer: UITapGestureRecognizer) {
+            guard recognizer.state == .ended else { return }
+            onTap(recognizer.location(in: recognizer.view))
+        }
+
+        @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
+            switch recognizer.state {
+            case .began, .changed:
+                onScrub(recognizer.location(in: recognizer.view))
+            default:
+                break
+            }
+        }
     }
 }
